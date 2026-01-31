@@ -5,14 +5,18 @@
   "action": {
     "default_popup": "index.html"   
   },
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": ["storage", "activeTab", "scripting", "tabs"],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "background": {
     "service_worker": "src/background/background.ts"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/content/content.ts"]
+      "js": ["src/content/content.ts"],
+      "run_at": "document_end"
     }
   ]
 }

@@ -4,14 +4,46 @@ export default function Popup() {
   const [text, setText] = useState("")
   const [loading, setLoading] = useState(false)
 
+  // const getPageText = async () => {
+  //   setLoading(true)
+  //   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+
+  //   chrome.tabs.sendMessage(tab.id!, { type: "GET_PAGE_TEXT" }, (response) => {
+  //     setText(!response ? response.text.slice(0, 500) : "No text found.")
+  //     setLoading(false)
+  //   })
+  // }
+
+  // popup to content script communication  
   const getPageText = async () => {
     setLoading(true)
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
 
-    chrome.tabs.sendMessage(tab.id!, { type: "GET_PAGE_TEXT" }, (response) => {
-      setText(!response ? response.text.slice(0, 500) : "No text found.")
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+
+      // Popup to content script message
+      chrome.tabs.sendMessage(tab.id!, { type : "GET_PAGE_TEXT"}, (response) => {
+        console.log("Response from content script:", response)
+        
+        if (chrome.runtime.lastError) {
+          console.error("Error sending message:", chrome.runtime.lastError)
+          setText("Error: " + chrome.runtime.lastError.message)
+          setLoading(false)
+          return
+        }
+        
+        if (response && response.text) {
+          setText(response.text.slice(0, 500))
+        } else {
+          setText("No text found.")
+        }
+        setLoading(false)
+      })
+    } catch (error) {
+      console.error("Error:", error)
+      setText("Error extracting page text")
       setLoading(false)
-    })
+    }
   }
 
   return (
