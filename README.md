@@ -47,7 +47,3 @@ Standard extension development can be clunky. **CRXJS** simplifies this by:
 - **Popup** ➔ sends message to ➔ **Content Script** (to get page text).
 - **Content Script** ➔ responds with ➔ **Scraped Text**.
 - **Popup** ➔ sends text to ➔ **Background Script** (for API processing).
-
----
-
-**Next Step:** Kya aapne isme koi AI API (like Gemini or OpenAI) integrate kiya hai? Agar haan, toh main "Features" section mein **Security/API Key handling** ka point bhi add kar sakta hoon.
