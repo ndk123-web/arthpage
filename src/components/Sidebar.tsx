@@ -142,21 +142,14 @@ export default function Sidebar() {
     // call the appropriate API based on provider and model settings and get the response
     chrome.runtime.sendMessage({type: "chat_message", provider, model,mode, prompt: input}, ({response}) => {
       console.log("Received response from background script:", response);
-      setMessages([
-        ...newMessages,
+      setMessages((prev) => [
+        ...prev,
         { role: "assistant", content: response || "No response received." }
       ]);
       setLoading(false);
     })
 
-    // Mock response for now
-    setTimeout(() => {
-      setMessages([
-        ...newMessages,
-        { role: "assistant", content: "I'm a basic placeholder. Connect me to " + (mode === 'online' ? (provider + " API") : "Local Ollama") + " to get real responses!" }
-      ]);
-      setLoading(false);
-    }, 1000);
+    // Mock response block removed to allow real API response
   };
 
   return (

@@ -14,50 +14,78 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
 
   if (msg.type === "chat_message") {
     const { provider, mode, model, prompt } = msg;
-    console.log(
-      `Received chat message with provider: ${provider}, model: ${model}, mode: ${mode}, prompt: ${prompt}`,
-    );
+    
+    // Offline Mode Handling
+    if (mode === "offline") {
+        sendResponse({ response: `Offline mode (Ollama) not connected to background yet. Model: ${model}` });
+        return true;
+    }
 
-    chrome.storage.sync.get([provider], (result) => {
-      const providerValue = result[provider];
-      console.log(
-        `Provider value from storage for ${provider}:`,
-        providerValue,
-      );
-
-      if (providerValue === "gemini") {
-        runGemini(prompt).then((geminiResponse) => {
-          console.log("Gemini response:", geminiResponse);
-          sendResponse({ response: geminiResponse });
+    // Online Mode Handling
+    if (provider === "gemini") {
+        // Pass the Dynamic Model from Sidebar
+        runGemini(prompt, model).then((response) => {
+            sendResponse({ response });
         });
-      }
-    });
+        return true;
+    } 
+    
+    else if (provider === "openai") {
+        runOpenAI(prompt, model).then((response) => {
+            sendResponse({ response });
+        });
+        return true;
+    }
+
+    else {
+        sendResponse({ response: `Provider ${provider} is not configured in background.` });
+    }
   }
 
-  // Keep the message channel open for async response
   return true;
 });
 
-async function runGemini(prompt: string) {
-  try {
-    chrome.storage.sync.get(["geminiApiKey", "geminiModel"], async (result) => {
-      const { geminiApiKey, geminiModel } = result;
+// --- Provider Implementations ---
 
-      if (!geminiApiKey || !geminiModel) {
-        console.error("Gemini API key or model not set in storage");
+async function runGemini(prompt: string, dynamicModel?: string): Promise<string> {
+  return new Promise((resolve) => {
+    // Only get API Key from storage. Use dynamicModel if provided.
+    chrome.storage.sync.get(["geminiApiKey"], async (result) => {
+      const { geminiApiKey } = result;
+
+      if (!geminiApiKey) {
+        resolve("Error: Gemini API Key is missing. Please set it in Options.");
         return;
       }
 
-      const geminiClient = new GeminiClient(
-        geminiApiKey as string,
-        geminiModel as string,
-      );
+      try {
+        // Use the model selected in Sidebar, or default to flash
+        const targetModel = dynamicModel || "gemini-1.5-flash";
+        
+        const geminiClient = new GeminiClient(
+          geminiApiKey as string,
+          targetModel,
+        );
 
-      const response = await geminiClient.chat(prompt);
-      return !response ? "No response from Gemini client" : response;
+        const response = await geminiClient.chat(prompt);
+        resolve(response || "No response.");
+      } catch (error: any) {
+        resolve(`Error: Gemini Request Failed. ${error.message || ''}`);
+      }
     });
-  } catch (error) {
-    console.error("Error in runGemini:", error);
-    return "Error: Failed to run Gemini client";
-  }
+  });
+}
+
+async function runOpenAI(prompt: string, dynamicModel?: string): Promise<string> {
+    return new Promise((resolve) => {
+        chrome.storage.sync.get(["openaiApiKey"], async (result) => {
+            const { openaiApiKey } = result;
+            if(!openaiApiKey) {
+                resolve("Error: OpenAI API Key is missing.");
+                return;
+            }
+            // Mock OpenAI Call for now (Client needs implementing)
+            resolve(`[Mock OpenAI] Response using model: ${dynamicModel || 'default'} (Prompt: ${prompt.substring(0,20)}...)`);
+        });
+    })
 }
