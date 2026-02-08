@@ -41,18 +41,33 @@ function Options() {
     }
 
     // Load Settings
-    chrome.storage.sync.get(['provider', 'openaiApiKey', 'openaiModel', 'geminiApiKey', 'geminiModel', 'deepseekApiKey', 'deepseekModel', 'claudeApiKey', 'claudeModel', 'ollamaUrl', 'ollamaModel'], (result) => {
-        if (result.provider) setProvider(result.provider as string)
-        if (result.openaiApiKey) setOpenaiApiKey(result.openaiApiKey as string)
-        if (result.openaiModel) setOpenaiModel(result.openaiModel as string)
-        if (result.geminiApiKey) setGeminiApiKey(result.geminiApiKey as string)
-        if (result.geminiModel) setGeminiModel(result.geminiModel as string)
-        if (result.deepseekApiKey) setDeepseekApiKey(result.deepseekApiKey as string)
-        if (result.deepseekModel) setDeepseekModel(result.deepseekModel as string)
-        if (result.claudeApiKey) setClaudeApiKey(result.claudeApiKey as string)
-        if (result.claudeModel) setClaudeModel(result.claudeModel as string)
-        if (result.ollamaUrl) setOllamaUrl(result.ollamaUrl as string)
-        if (result.ollamaModel) setOllamaModel(result.ollamaModel as string)
+    chrome.storage.sync.get(['provider', 'openai', 'gemini', 'deepseek', 'claude', 'ollama'], (result: any) => {
+        if (result.provider) setProvider(result.provider)
+        
+        if (result.openai) {
+            setOpenaiApiKey(result.openai.apiKey || "")
+            setOpenaiModel(result.openai.model || "gpt-4o")
+        }
+        
+        if (result.gemini) {
+            setGeminiApiKey(result.gemini.apiKey || "")
+            setGeminiModel(result.gemini.model || "gemini-1.5-flash")
+        }
+        
+        if (result.deepseek) {
+            setDeepseekApiKey(result.deepseek.apiKey || "")
+            setDeepseekModel(result.deepseek.model || "deepseek-chat")
+        }
+
+        if (result.claude) {
+            setClaudeApiKey(result.claude.apiKey || "")
+            setClaudeModel(result.claude.model || "claude-3-5-sonnet-20240620")
+        }
+
+        if (result.ollama) {
+            setOllamaUrl(result.ollama.url || "http://localhost:11434")
+            setOllamaModel(result.ollama.model || "llama3")
+        }
     })
   }, [])
 
@@ -70,16 +85,11 @@ function Options() {
   const handleSave = () => {
     chrome.storage.sync.set({
         provider: provider,
-        openaiApiKey: openaiApiKey,
-        openaiModel: openaiModel,
-        geminiApiKey: geminiApiKey,
-        geminiModel: geminiModel,
-        deepseekApiKey: deepseekApiKey,
-        deepseekModel: deepseekModel,
-        claudeApiKey: claudeApiKey,
-        claudeModel: claudeModel,
-        ollamaUrl: ollamaUrl,
-        ollamaModel: ollamaModel
+        openai: { apiKey: openaiApiKey, model: openaiModel },
+        gemini: { apiKey: geminiApiKey, model: geminiModel },
+        deepseek: { apiKey: deepseekApiKey, model: deepseekModel },
+        claude: { apiKey: claudeApiKey, model: claudeModel },
+        ollama: { url: ollamaUrl, model: ollamaModel }
     }, () => {
         setStatus("Settings saved successfully!")
         setTimeout(() => setStatus(""), 3000)

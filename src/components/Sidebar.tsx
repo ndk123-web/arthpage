@@ -64,14 +64,29 @@ export default function Sidebar() {
 
   // Sync settings from storage on mount
   useEffect(() => {
-    chrome.storage.sync.get(['provider', 'openaiModel', 'ollamaUrl', 'ollamaModel', 'geminiModel', 'claudeModel', 'deepseekModel'], (result) => {
-        if (result.provider) setProvider(result.provider as Provider);
-        // Note: We might want to separate the "model" state per provider like in options, but for the sidebar simplified view, 
-        // we might just let the user pick or default to what was last saved. 
-        // For simplicity, let's just initialize the model based on the provider.
-        // Actually, we should probably listen for storage changes too.
+    chrome.storage.sync.get(['currentProvider', 'currentModel', 'provider', 'openai', 'gemini', 'claude', 'deepseek', 'ollama'], (result: any) => {
+        // Prioritize "currentProvider" if it exists (from Sidebar last session), otherwise fall back to "provider" (from Options)
+        if (result.currentProvider) {
+            setProvider(result.currentProvider as Provider);
+        } else if (result.provider) {
+            setProvider(result.provider as Provider);
+        }
+
+        if (result.currentModel) {
+            setModel(result.currentModel as string);
+        }
+        
+        // Load Ollama URL from settings if available
+        if (result.ollama && result.ollama.url) {
+            setOllamaUrl(result.ollama.url);
+        }
     });
   }, []);
+
+  // Sync "current" selection to storage whenever it changes
+  useEffect(() => {
+    chrome.storage.sync.set({ currentProvider: provider, currentModel: model });
+  }, [provider, model]);
 
   // Resizing Logic
   useEffect(() => {
