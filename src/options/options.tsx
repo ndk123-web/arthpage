@@ -16,8 +16,11 @@ function Options() {
   const [openaiApiKey, setOpenaiApiKey] = useState("")
   const [openaiModel, setOpenaiModel] = useState("gpt-4o")
   const [geminiApiKey, setGeminiApiKey] = useState("")
+  const [geminiModel, setGeminiModel] = useState("gemini-1.5-flash")
   const [deepseekApiKey, setDeepseekApiKey] = useState("")
+  const [deepseekModel, setDeepseekModel] = useState("deepseek-chat")
   const [claudeApiKey, setClaudeApiKey] = useState("")
+  const [claudeModel, setClaudeModel] = useState("claude-3-5-sonnet-20240620")
   
   const [ollamaUrl, setOllamaUrl] = useState("http://localhost:11434")
   const [ollamaModel, setOllamaModel] = useState("llama3")
@@ -38,13 +41,16 @@ function Options() {
     }
 
     // Load Settings
-    chrome.storage.sync.get(['provider', 'openaiApiKey', 'openaiModel', 'geminiApiKey', 'deepseekApiKey', 'claudeApiKey', 'ollamaUrl', 'ollamaModel'], (result) => {
+    chrome.storage.sync.get(['provider', 'openaiApiKey', 'openaiModel', 'geminiApiKey', 'geminiModel', 'deepseekApiKey', 'deepseekModel', 'claudeApiKey', 'claudeModel', 'ollamaUrl', 'ollamaModel'], (result) => {
         if (result.provider) setProvider(result.provider as string)
         if (result.openaiApiKey) setOpenaiApiKey(result.openaiApiKey as string)
         if (result.openaiModel) setOpenaiModel(result.openaiModel as string)
         if (result.geminiApiKey) setGeminiApiKey(result.geminiApiKey as string)
+        if (result.geminiModel) setGeminiModel(result.geminiModel as string)
         if (result.deepseekApiKey) setDeepseekApiKey(result.deepseekApiKey as string)
+        if (result.deepseekModel) setDeepseekModel(result.deepseekModel as string)
         if (result.claudeApiKey) setClaudeApiKey(result.claudeApiKey as string)
+        if (result.claudeModel) setClaudeModel(result.claudeModel as string)
         if (result.ollamaUrl) setOllamaUrl(result.ollamaUrl as string)
         if (result.ollamaModel) setOllamaModel(result.ollamaModel as string)
     })
@@ -67,8 +73,11 @@ function Options() {
         openaiApiKey: openaiApiKey,
         openaiModel: openaiModel,
         geminiApiKey: geminiApiKey,
+        geminiModel: geminiModel,
         deepseekApiKey: deepseekApiKey,
+        deepseekModel: deepseekModel,
         claudeApiKey: claudeApiKey,
+        claudeModel: claudeModel,
         ollamaUrl: ollamaUrl,
         ollamaModel: ollamaModel
     }, () => {
@@ -162,7 +171,21 @@ function Options() {
                         )}
 
                         {provider === 'gemini' && (
-                             <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                             <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="space-y-3">
+                                <label className="text-sm font-medium">Model Selection</label>
+                                <Select value={geminiModel} onValueChange={setGeminiModel}>
+                                    <SelectTrigger className={isDark ? "bg-neutral-900 border-neutral-800" : ""}>
+                                        <SelectValue placeholder="Select model" />
+                                    </SelectTrigger>
+                                    <SelectContent className={isDark ? "bg-neutral-900 border-neutral-800 text-white" : ""}>
+                                        <SelectItem value="gemini-1.5-flash">Gemini 1.5 Flash</SelectItem>
+                                        <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
+                                        <SelectItem value="gemini-1.0-pro">Gemini 1.0 Pro</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                                <div className="space-y-3">
                                 <label className="text-sm font-medium">Gemini API Key</label>
                                 <Input 
                                     type="password" 
@@ -171,11 +194,25 @@ function Options() {
                                     onChange={(e) => setGeminiApiKey(e.target.value)}
                                     className={isDark ? "bg-neutral-900 border-neutral-800" : ""}
                                 />
+                                </div>
                             </div>
                         )}
 
                         {provider === 'deepseek' && (
-                             <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                             <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="space-y-3">
+                                <label className="text-sm font-medium">Model Selection</label>
+                                <Select value={deepseekModel} onValueChange={setDeepseekModel}>
+                                    <SelectTrigger className={isDark ? "bg-neutral-900 border-neutral-800" : ""}>
+                                        <SelectValue placeholder="Select model" />
+                                    </SelectTrigger>
+                                    <SelectContent className={isDark ? "bg-neutral-900 border-neutral-800 text-white" : ""}>
+                                        <SelectItem value="deepseek-chat">DeepSeek Chat</SelectItem>
+                                        <SelectItem value="deepseek-coder">DeepSeek Coder</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                                <div className="space-y-3">
                                 <label className="text-sm font-medium">DeepSeek API Key</label>
                                 <Input 
                                     type="password" 
@@ -184,11 +221,26 @@ function Options() {
                                     onChange={(e) => setDeepseekApiKey(e.target.value)}
                                     className={isDark ? "bg-neutral-900 border-neutral-800" : ""}
                                 />
+                                </div>
                             </div>
                         )}
 
                         {provider === 'claude' && (
-                             <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                             <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="space-y-3">
+                                <label className="text-sm font-medium">Model Selection</label>
+                                <Select value={claudeModel} onValueChange={setClaudeModel}>
+                                    <SelectTrigger className={isDark ? "bg-neutral-900 border-neutral-800" : ""}>
+                                        <SelectValue placeholder="Select model" />
+                                    </SelectTrigger>
+                                    <SelectContent className={isDark ? "bg-neutral-900 border-neutral-800 text-white" : ""}>
+                                        <SelectItem value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet</SelectItem>
+                                        <SelectItem value="claude-3-opus-20240229">Claude 3 Opus</SelectItem>
+                                        <SelectItem value="claude-3-haiku-20240307">Claude 3 Haiku</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                                <div className="space-y-3">
                                 <label className="text-sm font-medium">Claude API Key</label>
                                 <Input 
                                     type="password" 
@@ -197,6 +249,7 @@ function Options() {
                                     onChange={(e) => setClaudeApiKey(e.target.value)}
                                     className={isDark ? "bg-neutral-900 border-neutral-800" : ""}
                                 />
+                                </div>
                             </div>
                         )}
                         
