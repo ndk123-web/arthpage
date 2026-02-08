@@ -14,8 +14,10 @@ export class GeminiClient implements LLMClient {
     }
 
     const ai = new GoogleGenAI({ apiKey: this.apiKey });
+    console.log(`GeminiClient: Sending prompt to Gemini API with model ${this.model}`);
+    
     const response = await ai.models.generateContent({
-      model: this.model,
+      model: this.model || "gemini-1.5-flash-001",
       contents: prompt,
     });
 
@@ -24,12 +26,13 @@ export class GeminiClient implements LLMClient {
 
   async chat(prompt: string): Promise<string> {
     try {
+      console.log(`Calling Gemini with Model: ${this.model}`);
       const response = await this.main(prompt);
       console.log("Gemini response:", response);
       return response;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in GeminiClient chat:", error);
-      return "Error: Failed to get response from Gemini model";
+      return `Error: ${error.message || "Failed to get response"}`;
     }
   }
 }

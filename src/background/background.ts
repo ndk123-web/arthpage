@@ -68,10 +68,11 @@ async function runGemini(
 
       try {
         // Use the model selected in Sidebar, or default to flash
-        const targetModel = dynamicModel || "gemini-1.5-flash";
-
+        const targetModel = dynamicModel || "gemini-1.5-flash-001";
+        console.log(`Initializing Gemini with Key: ${geminiApiKey.substring(0, 5)}... and Model: ${targetModel}`);
+        
         const geminiClient = new GeminiClient(
-          geminiApiKey as string,
+          geminiApiKey.trim(),
           targetModel,
         );
 

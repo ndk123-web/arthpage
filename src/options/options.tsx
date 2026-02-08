@@ -192,6 +192,8 @@ function Options() {
                                         <SelectItem value="gemini-1.5-flash">Gemini 1.5 Flash</SelectItem>
                                         <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
                                         <SelectItem value="gemini-1.0-pro">Gemini 1.0 Pro</SelectItem>
+                                        <SelectItem value="gemini-3-flash-preview">gemini-3-flash-preview</SelectItem>
+                                        <SelectItem value="gemini-2.5-flash">gemini-2.5-flash</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

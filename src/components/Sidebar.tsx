@@ -155,6 +155,13 @@ export default function Sidebar() {
     // });
 
     // call the appropriate API based on provider and model settings and get the response
+    
+    // DEBUG: Log ALL storage data before sending
+    chrome.storage.sync.get(null, (items) => {
+       console.log("🛑 DEBUG: Full Storage Dump:", items);
+       console.log("👉 Sending Message with:", { provider, mode, model, prompt: input });
+    });
+
     chrome.runtime.sendMessage({type: "chat_message", provider, model,mode, prompt: input}, ({response}) => {
       console.log("Received response from background script:", response);
       setMessages((prev) => [
@@ -331,6 +338,8 @@ export default function Sidebar() {
                                 <SelectItem value="gemini-1.5-flash">Gemini 1.5 Flash</SelectItem>
                                 <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
                                 <SelectItem value="gemini-1.0-pro">Gemini 1.0 Pro</SelectItem>
+                                <SelectItem value="gemini-3-flash-preview">gemini-3-flash-preview</SelectItem>
+                                <SelectItem value="gemini-2.5-flash">gemini-2.5-flash</SelectItem>
                             </>
                         )}
                         {provider === 'claude' && (
