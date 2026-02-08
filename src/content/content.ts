@@ -46,14 +46,29 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
   }
 
   if (msg.type === "INJECT_SIDEBAR") {
-    import("./sidebar.tsx").then(({ mountSidebar }) => {
-      mountSidebar();
-      sendResponse({ status: "SIDEBAR_INJECTED" });
-      console.log("Sidebar injected into the page.");
-    }).catch((error) => {
-      console.error("Error importing sidebar:", error);
-      sendResponse({ status: "SIDEBAR_INJECTION_FAILED", error: error.message });
-    });
+    console.log("Starting sidebar injection...");
+    import("./sidebar.tsx")
+      .then(({ mountSidebar }) => {
+        console.log("Sidebar module loaded successfully");
+        try {
+          mountSidebar();
+          sendResponse({ status: "SIDEBAR_INJECTED" });
+          console.log("Sidebar injected into the page.");
+        } catch (e) {
+          console.error("Error mounting sidebar:", e);
+          sendResponse({ 
+            status: "SIDEBAR_INJECTION_FAILED", 
+            error: (e as Error).message 
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error importing sidebar module:", error);
+        sendResponse({ 
+          status: "SIDEBAR_INJECTION_FAILED", 
+          error: error.message 
+        });
+      });
     
     return true; // Keep channel open for async response
   }

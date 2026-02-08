@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import Sidebar from "../components/Sidebar";
-import "../index.css";
+import "../App.css"; // Import styles
 
 export function mountSidebar() {
   // Check if sidebar is already mounted
@@ -10,9 +10,20 @@ export function mountSidebar() {
     return;
   }
 
-  // Create container
+  // Create container without any CSS imports
   const container = document.createElement("div");
   container.id = "my-extension-sidebar-root";
+  
+  // Reset all styles to prevent page CSS from affecting sidebar
+  Object.assign(container.style, {
+    all: "initial",
+    display: "block",
+    margin: 0,
+    padding: 0,
+    border: "none",
+    font: "inherit",
+  });
+
   document.body.appendChild(container);
 
   // Mount React app

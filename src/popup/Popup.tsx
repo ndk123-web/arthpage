@@ -1,10 +1,26 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { Button } from "../components/ui/button"
+import { Zap, Sidebar, Moon, Sun } from "lucide-react"
 import '../index.css'
 
 export default function Popup() {
   const [text, setText] = useState("")
   const [loading, setLoading] = useState(false)
   const [sidebarStatus, setSidebarStatus] = useState(false)
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    // Check system preference or saved preference
+    const savedTheme = localStorage.getItem("extension-theme")
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+    setIsDark(savedTheme ? savedTheme === "dark" : prefersDark)
+  }, [])
+
+  const toggleTheme = () => {
+    const newTheme = !isDark
+    setIsDark(newTheme)
+    localStorage.setItem("extension-theme", newTheme ? "dark" : "light")
+  }
 
   const getPageText = async () => {
     setLoading(true)
@@ -68,83 +84,89 @@ export default function Popup() {
   }
 
   return (
-    <div className="w-96 bg-white text-gray-900 flex flex-col h-auto rounded-lg shadow-2xl">
-      {/* Header - Modern gradient */}
-      <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 p-6 rounded-t-lg">
-        <h1 className="text-2xl font-bold text-white mb-1">Web Summarizer</h1>
-        <p className="text-blue-100 text-sm">Extract & summarize web content instantly</p>
+    <div className={`w-96 flex flex-col h-auto rounded-lg shadow-2xl transition-colors border ${isDark ? 'bg-black text-gray-100 border-neutral-800' : 'bg-white text-gray-900 border-gray-200'}`}>
+      {/* Header - Vercel style */}
+      <div className={`p-5 flex items-center justify-between border-b ${isDark ? 'border-neutral-800 bg-black' : 'border-gray-200 bg-white'} rounded-t-lg`}>
+        <div className="flex items-center gap-2">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark ? 'bg-white text-black' : 'bg-black text-white'}`}>
+            <Zap className="w-5 h-5 fill-current" />
+          </div>
+          <div>
+            <h1 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-black'}`}>Web Summarizer</h1>
+            <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>AI-powered extraction</p>
+          </div>
+        </div>
+        <button
+          onClick={toggleTheme}
+          className={`p-2 rounded-md transition-colors ${isDark ? 'hover:bg-neutral-800 text-neutral-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-black'}`}
+        >
+          {isDark ? (
+            <Sun className="w-4 h-4" />
+          ) : (
+            <Moon className="w-4 h-4" />
+          )}
+        </button>
       </div>
 
       {/* Content Area */}
-      <div className="p-6 space-y-4">
+      <div className="p-5 space-y-4">
         {text ? (
           <div className="space-y-3">
-            <div>
-              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Extracted Content</label>
-              <div className="mt-2 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words">
-                  {text}
-                </p>
-              </div>
+            <div className={`rounded-lg p-3 border text-sm font-mono overflow-auto max-h-60 ${isDark ? 'bg-neutral-900 border-neutral-800 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-600'}`}>
+              <p className="whitespace-pre-wrap break-words">
+                {text}
+              </p>
             </div>
           </div>
         ) : (
-          <div className="text-center py-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-3">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <p className="text-gray-600 font-medium">Ready to Extract</p>
-            <p className="text-gray-500 text-sm mt-1">Click the button below to start</p>
+          <div className={`text-center py-10 border-2 border-dashed rounded-lg ${isDark ? 'border-neutral-800 bg-neutral-900/50' : 'border-gray-200 bg-gray-50/50'}`}>
+            <p className={`font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>No content extracted</p>
+            <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Extract text to view summary</p>
           </div>
         )}
       </div>
 
       {/* Button Area */}
-      <div className="px-6 pb-6 space-y-2">
+      <div className={`p-5 pt-0 space-y-3`}>
         {/* Extract Text Button */}
-        <button
+        <Button
           onClick={getPageText}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold py-3 px-4 rounded-xl transition-all shadow-md hover:shadow-lg disabled:shadow-none disabled:cursor-not-allowed"
+          className={`w-full h-10 font-medium transition-all ${
+            isDark 
+              ? 'bg-white text-black hover:bg-gray-200 border-transparent' 
+              : 'bg-black text-white hover:bg-neutral-800 border-transparent'
+          }`}
         >
           {loading ? (
             <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span>Extracting...</span>
+              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+              <span>Processing...</span>
             </>
           ) : (
             <>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
               <span>Extract Page Text</span>
             </>
           )}
-        </button>
+        </Button>
 
         {/* Sidebar Button */}
-        <button 
+        <Button 
           onClick={() => {
             if (!sidebarStatus)
                 injectSidebar()
             
             toggleSidebar()
           }}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg"
+          className={`w-full h-10 font-medium border ${
+            isDark 
+              ? 'bg-black text-white border-neutral-800 hover:bg-neutral-900' 
+              : 'bg-white text-black border-gray-200 hover:bg-gray-50'
+          }`}
         >
-          {sidebarStatus ? (
-            sidebarStatus
-          ) : (
-            <>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-              <span>{sidebarStatus ? "Enable Sidebar" : "Disable Sidebar"}</span>
-            </>
-          )}
-        </button>
+          <Sidebar className="w-4 h-4 mr-2" />
+          <span>{sidebarStatus ? "Close Sidebar" : "Open Sidebar"}</span>
+        </Button>
       </div>
     </div>
   )
