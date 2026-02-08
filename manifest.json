@@ -19,8 +19,5 @@
       "run_at": "document_end"
     }
   ],
-  "option_ui": {
-    "page": "options/options.tsx",
-    "open_in_tab": true
-  }
+  "options_page": "src/options/options.html"
 }
