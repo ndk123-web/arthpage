@@ -2,7 +2,13 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import { Select } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { cn } from "@/lib/utils";
 import { X, Send, Bot, Moon, Sun } from "lucide-react";
 
@@ -28,7 +34,6 @@ export default function Sidebar() {
   // Settings State
   const [provider, setProvider] = useState<Provider>("online");
   const [model, setModel] = useState("gpt-3.5-turbo");
-  const [apiKey, setApiKey] = useState("");
   const [ollamaUrl, setOllamaUrl] = useState("http://localhost:11434");
 
   // Effect for Theme
@@ -77,18 +82,18 @@ export default function Sidebar() {
   };
 
   return (
-    <div className={cn("fixed right-0 top-0 h-screen w-96 shadow-2xl z-[2147483647] font-sans antialiased transition-colors duration-300 flex flex-col border-l", isDark ? "dark bg-neutral-950 text-white border-neutral-800" : "light bg-white text-gray-900 border-gray-200")}>
+    <div className={cn("fixed right-0 top-0 h-screen w-96 shadow-2xl z-[2147483647] font-sans antialiased transition-colors duration-300 flex flex-col border-l", isDark ? "dark bg-black text-gray-100 border-neutral-800" : "light bg-white text-gray-900 border-gray-200")}>
       
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-muted/40 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className={cn("flex items-center justify-between p-4 border-b backdrop-blur supports-[backdrop-filter]:bg-background/60", isDark ? 'border-neutral-800 bg-black' : 'border-gray-200 bg-white')}>
         <div className="flex items-center gap-2 font-semibold">
-           <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
+           <div className={cn("h-8 w-8 rounded-full flex items-center justify-center shadow-sm", isDark ? 'bg-white text-black' : 'bg-black text-white')}>
              <Bot className="h-5 w-5" />
            </div>
            <span className="text-sm">Web Assistant</span>
         </div>
         <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-8 w-8 rounded-full">
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-8 w-8 rounded-full hover:bg-neutral-800/50">
                 {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
             <Button variant="ghost" size="icon" onClick={closeSidebar} className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive">
@@ -103,15 +108,15 @@ export default function Sidebar() {
             <div key={i} className={cn("flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300", msg.role === 'user' ? "justify-end" : "justify-start")}>
                 <div className={cn("rounded-2xl px-4 py-2.5 max-w-[85%] text-sm shadow-sm", 
                     msg.role === 'user' 
-                        ? "bg-primary text-primary-foreground rounded-br-none" 
-                        : "bg-muted text-foreground border rounded-bl-none")}>
+                        ? (isDark ? "bg-white text-black rounded-br-none" : "bg-black text-white rounded-br-none")
+                        : (isDark ? "bg-neutral-900 text-gray-100 border border-neutral-800 rounded-bl-none" : "bg-gray-100 text-gray-900 rounded-bl-none"))}>
                     {msg.content}
                 </div>
             </div>
         ))}
         {loading && (
              <div className="flex w-full justify-start animate-in fade-in slide-in-from-bottom-2">
-                <div className="rounded-2xl rounded-bl-none px-4 py-2 bg-muted text-muted-foreground text-xs animate-pulse flex items-center gap-1">
+                <div className={cn("rounded-2xl rounded-bl-none px-4 py-2 text-xs animate-pulse flex items-center gap-1", isDark ? "bg-neutral-900 text-gray-400" : "bg-gray-100 text-gray-500")}>
                     <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce delay-0"></span>
                     <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce delay-150"></span>
                     <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce delay-300"></span>
@@ -121,42 +126,45 @@ export default function Sidebar() {
       </div>
 
       {/* Settings & Input Area */}
-      <div className="p-4 border-t bg-muted/20 space-y-3">
+      <div className={cn("p-4 border-t space-y-3", isDark ? "bg-neutral-900/10 border-neutral-800" : "bg-gray-50/50 border-gray-200")}>
         
         {/* Model Selector Bar */}
         <div className="grid grid-cols-2 gap-2">
-            <Select 
-                value={provider} 
-                onChange={(e) => setProvider(e.target.value as Provider)}
-                className="h-8 text-xs bg-background/50"
-            >
-                <option value="online">Online (API)</option>
-                <option value="offline">Offline (Local)</option>
+            <Select value={provider} onValueChange={(val) => setProvider(val as Provider)}>
+              <SelectTrigger className={cn("h-8 text-xs", isDark ? "bg-neutral-900 border-neutral-800 text-gray-300" : "bg-white border-gray-200")}>
+                <SelectValue placeholder="Provider" />
+              </SelectTrigger>
+              <SelectContent className={cn("z-[2147483648] border", isDark ? "dark border-neutral-800 bg-neutral-950 text-white" : "light border-gray-200 bg-white text-gray-950")}>
+                <SelectItem value="online">Online (API)</SelectItem>
+                <SelectItem value="offline">Offline (Local)</SelectItem>
+              </SelectContent>
             </Select>
 
-            <Select 
-                value={model} 
-                onChange={(e) => setModel(e.target.value)}
-                className="h-8 text-xs bg-background/50"
-            >
-                {provider === 'online' ? (
-                    <>
-                        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                        <option value="gpt-4o">GPT-4o</option>
-                        <option value="gemini-pro">Gemini Pro</option>
-                    </>
-                ) : (
-                    <>
-                        <option value="llama3">Llama 3</option>
-                        <option value="mistral">Mistral</option>
-                        <option value="custom">Custom</option>
-                    </>
-                )}
+            <Select value={model} onValueChange={setModel}>
+              <SelectTrigger className={cn("h-8 text-xs", isDark ? "bg-neutral-900 border-neutral-800 text-gray-300" : "bg-white border-gray-200")}>
+                <SelectValue placeholder="Model" />
+              </SelectTrigger>
+              <SelectContent className={cn("z-[2147483648] border", isDark ? "dark border-neutral-800 bg-neutral-950 text-white" : "light border-gray-200 bg-white text-gray-950")}>
+                  {provider === 'online' ? (
+                      <>
+                          <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                          <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                          <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
+                      </>
+                  ) : (
+                      <>
+                          <SelectItem value="llama3">Llama 3</SelectItem>
+                          <SelectItem value="mistral">Mistral</SelectItem>
+                          <SelectItem value="custom">Custom</SelectItem>
+                      </>
+                  )}
+              </SelectContent>
             </Select>
         </div>
 
         {/* Dynamic Settings Fields - Only showing simplified for now */}
-        {provider === 'online' && (
+        {/* API Key Input Removed as requested */}
+        {/* {provider === 'online' && (
              <Input 
                 placeholder="Enter API Key" 
                 type="password"
@@ -164,13 +172,13 @@ export default function Sidebar() {
                 onChange={(e) => setApiKey(e.target.value)}
                 className="h-8 text-xs bg-background/50"
              />
-        )}
+        )} */}
          {provider === 'offline' && (
              <Input 
                 placeholder="Ollama URL (http://localhost:11434)" 
                 value={ollamaUrl}
                 onChange={(e) => setOllamaUrl(e.target.value)}
-                className="h-8 text-xs bg-background/50"
+                className={cn("h-8 text-xs", isDark ? "bg-neutral-900 border-neutral-800 text-gray-300 placeholder:text-neutral-600" : "bg-white border-gray-200")}
              />
         )}
 
@@ -180,7 +188,7 @@ export default function Sidebar() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Type a message..."
-                className="min-h-[80px] pr-12 resize-none bg-background focus-visible:ring-1 shadow-sm"
+                className={cn("min-h-[80px] pr-12 resize-none focus-visible:ring-1 shadow-sm", isDark ? "bg-neutral-900 border-neutral-800 text-gray-100 placeholder:text-neutral-500 focus-visible:ring-neutral-700" : "bg-white border-gray-200 text-gray-900")}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
@@ -190,7 +198,7 @@ export default function Sidebar() {
             />
             <Button 
                 size="icon" 
-                className="absolute bottom-2 right-2 h-8 w-8 rounded-lg shadow-sm transition-all hover:scale-105 active:scale-95"
+                className={cn("absolute bottom-2 right-2 h-8 w-8 rounded-lg shadow-sm transition-all hover:scale-105 active:scale-95", isDark ? "bg-white text-black hover:bg-gray-200" : "bg-black text-white hover:bg-neutral-800")}
                 onClick={handleSend}
                 disabled={!input.trim() || loading}
             >
@@ -199,10 +207,10 @@ export default function Sidebar() {
         </div>
         
         <div className="flex justify-between text-[10px] text-muted-foreground px-1 font-medium">
-            <span className="flex items-center gap-1 opacity-70">
+            <span className={cn("flex items-center gap-1 opacity-70", isDark ? "text-neutral-400" : "text-gray-500")}>
                 {provider === 'online' ? '🟢 Cloud Connected' : '🟠 Local Server'}
             </span>
-            <span className="opacity-70">{model}</span>
+            <span className={cn("opacity-70", isDark ? "text-neutral-400" : "text-gray-500")}>{model}</span>
         </div>
       </div>
     </div>
