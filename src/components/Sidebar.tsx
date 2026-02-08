@@ -77,7 +77,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className={cn("fixed right-0 top-0 h-screen w-96 shadow-2xl z-[2147483647] font-sans antialiased transition-colors duration-300 flex flex-col border-l", isDark ? "dark bg-background text-foreground border-border" : "light bg-background text-foreground border-border")}>
+    <div className={cn("fixed right-0 top-0 h-screen w-96 shadow-2xl z-[2147483647] font-sans antialiased transition-colors duration-300 flex flex-col border-l", isDark ? "dark bg-neutral-950 text-white border-neutral-800" : "light bg-white text-gray-900 border-gray-200")}>
       
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-muted/40 backdrop-blur supports-[backdrop-filter]:bg-background/60">
