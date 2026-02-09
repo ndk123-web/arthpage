@@ -159,10 +159,17 @@ export default function Sidebar() {
     // DEBUG: Log ALL storage data before sending
     chrome.storage.sync.get(null, (items) => {
        console.log("🛑 DEBUG: Full Storage Dump:", items);
-       console.log("👉 Sending Message with:", { provider, mode, model, prompt: input });
+       console.log("👉 Sending Message with:", { provider, mode, model, prompt: input, ollamaUrl });
     });
 
-    chrome.runtime.sendMessage({type: "chat_message", provider, model,mode, prompt: input}, ({response}) => {
+    chrome.runtime.sendMessage({
+      type: "chat_message", 
+      provider, 
+      model, 
+      mode, 
+      prompt: input, 
+      ollamaUrl
+    }, ({response}) => {
       console.log("Received response from background script:", response);
       setMessages((prev) => [
         ...prev,
@@ -261,7 +268,7 @@ export default function Sidebar() {
       <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 custom-scrollbar">
         {messages.map((msg, i) => (
             <div key={i} className={cn("flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300", msg.role === 'user' ? "justify-end" : "justify-start")}>
-                <div className={cn("rounded-2xl px-4 py-2.5 max-w-[85%] text-sm shadow-sm", 
+                <div className={cn("rounded-2xl px-4 py-2.5 max-w-[85%] text-sm shadow-sm break-words whitespace-pre-wrap", 
                     msg.role === 'user' 
                         ? (isDark ? "bg-white text-black rounded-br-none" : "bg-black text-white rounded-br-none")
                         : (isDark ? "bg-neutral-900 text-gray-100 border border-neutral-800 rounded-bl-none" : "bg-gray-100 text-gray-900 rounded-bl-none"))}>
@@ -340,6 +347,7 @@ export default function Sidebar() {
                                 <SelectItem value="gemini-1.0-pro">Gemini 1.0 Pro</SelectItem>
                                 <SelectItem value="gemini-3-flash-preview">gemini-3-flash-preview</SelectItem>
                                 <SelectItem value="gemini-2.5-flash">gemini-2.5-flash</SelectItem>
+                                <SelectItem value="gemini-2.0-flash">gemini-2.0-flash</SelectItem>
                             </>
                         )}
                         {provider === 'claude' && (
@@ -381,13 +389,25 @@ export default function Sidebar() {
         <div className="relative">
             <Textarea 
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                    setInput(e.target.value);
+                    // Reset height to auto to shrink if text is deleted, then grow to scrollHeight
+                    e.target.style.height = 'auto';
+                    e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px'; // Cap max height at 200px
+                }}
                 placeholder="Type a message..."
-                className={cn("min-h-[80px] pr-12 resize-none focus-visible:ring-1 shadow-sm", isDark ? "bg-neutral-900 border-neutral-800 text-gray-100 placeholder:text-neutral-500 focus-visible:ring-neutral-700" : "bg-white border-gray-200 text-gray-900")}
+                rows={1}
+                className={cn("min-h-[60px] max-h-[200px] pr-12 resize-none focus-visible:ring-1 shadow-sm py-3", isDark ? "bg-neutral-900 border-neutral-800 text-gray-100 placeholder:text-neutral-500 focus-visible:ring-neutral-700" : "bg-white border-gray-200 text-gray-900")}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         handleSend();
+                        // Reset height after sending (need to target element carefully, simple setInput handles value, but height needs reset)
+                        // Ideally we use a Ref, but simple hack for now:
+                        const target = e.target as HTMLTextAreaElement;
+                        setTimeout(() => {
+                           target.style.height = 'auto'; 
+                        }, 0);
                     }
                 }}
             />

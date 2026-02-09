@@ -7,24 +7,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Moon, Sun, Save, Wifi, WifiOff } from "lucide-react"
 import '../App.css' // Helper for Tailwind/Shadcn variables
 
+// Define available models as constants
+const MODEL_OPTIONS = {
+    openai: ["gpt-4o", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo"],
+    gemini: ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro", "gemini-3-flash-preview", "gemini-2.5-flash","gemini-2.0-flash"],
+    deepseek: ["deepseek-chat", "deepseek-coder"],
+    claude: ["claude-3-5-sonnet-20240620", "claude-3-opus-20240229", "claude-3-haiku-20240307"],
+    ollama: ["llama3", "llama2", "mistral", "gemma", "phi3", "codellama"],
+};
+
 function Options() {
   const [isDark, setIsDark] = useState(false)
   const [activeTab, setActiveTab] = useState<"online" | "offline">("online")
-  
-  // Settings State
-  const [provider, setProvider] = useState("openai")
-  const [openaiApiKey, setOpenaiApiKey] = useState("")
-  const [openaiModel, setOpenaiModel] = useState("gpt-4o")
-  const [geminiApiKey, setGeminiApiKey] = useState("")
-  const [geminiModel, setGeminiModel] = useState("gemini-1.5-flash")
-  const [deepseekApiKey, setDeepseekApiKey] = useState("")
-  const [deepseekModel, setDeepseekModel] = useState("deepseek-chat")
-  const [claudeApiKey, setClaudeApiKey] = useState("")
-  const [claudeModel, setClaudeModel] = useState("claude-3-5-sonnet-20240620")
-  
-  const [ollamaUrl, setOllamaUrl] = useState("http://localhost:11434")
-  const [ollamaModel, setOllamaModel] = useState("llama3")
   const [status, setStatus] = useState("")
+  
+  // State structure for settings
+  const [settings, setSettings] = useState({
+    activeProvider: "openai",
+    providers: {
+        openai: {apiKey: "", model: "gpt-4o"},
+        gemini: {apiKey: "", model: "gemini-1.5-flash"},
+        deepseek: {apiKey: "", model: "deepseek-chat"},
+        claude: {apiKey: "", model: "claude-3-5-sonnet-20240620"},
+        ollama: {url: "http://localhost:11434", model: "llama3"}
+    }
+  })
 
   useEffect(() => {
     // Theme init
@@ -42,32 +49,32 @@ function Options() {
 
     // Load Settings
     chrome.storage.sync.get(['provider', 'openai', 'gemini', 'deepseek', 'claude', 'ollama'], (result: any) => {
-        if (result.provider) setProvider(result.provider)
-        
-        if (result.openai) {
-            setOpenaiApiKey(result.openai.apiKey || "")
-            setOpenaiModel(result.openai.model || "gpt-4o")
-        }
-        
-        if (result.gemini) {
-            setGeminiApiKey(result.gemini.apiKey || "")
-            setGeminiModel(result.gemini.model || "gemini-1.5-flash")
-        }
-        
-        if (result.deepseek) {
-            setDeepseekApiKey(result.deepseek.apiKey || "")
-            setDeepseekModel(result.deepseek.model || "deepseek-chat")
-        }
-
-        if (result.claude) {
-            setClaudeApiKey(result.claude.apiKey || "")
-            setClaudeModel(result.claude.model || "claude-3-5-sonnet-20240620")
-        }
-
-        if (result.ollama) {
-            setOllamaUrl(result.ollama.url || "http://localhost:11434")
-            setOllamaModel(result.ollama.model || "llama3")
-        }
+        setSettings((prev) => ({
+            ...prev,
+            activeProvider: result.provider || prev.activeProvider,
+            providers: {
+                openai: {
+                    apiKey: result.openai?.apiKey || prev.providers.openai.apiKey,
+                    model: result.openai?.model || prev.providers.openai.model
+                },
+                gemini: {
+                    apiKey: result.gemini?.apiKey || prev.providers.gemini.apiKey,
+                    model: result.gemini?.model || prev.providers.gemini.model
+                },
+                deepseek: {
+                    apiKey: result.deepseek?.apiKey || prev.providers.deepseek.apiKey,
+                    model: result.deepseek?.model || prev.providers.deepseek.model
+                },  
+                claude: {
+                    apiKey: result.claude?.apiKey || prev.providers.claude.apiKey,
+                    model: result.claude?.model || prev.providers.claude.model
+                },
+                ollama: {
+                    url: result.ollama?.url || prev.providers.ollama.url,
+                    model: result.ollama?.model || prev.providers.ollama.model
+                }
+            }
+        }))
     })
   }, [])
 
@@ -82,18 +89,37 @@ function Options() {
     }
   }
 
+  // Handle saving settings flattened to sync storage
   const handleSave = () => {
     chrome.storage.sync.set({
-        provider: provider,
-        openai: { apiKey: openaiApiKey, model: openaiModel },
-        gemini: { apiKey: geminiApiKey, model: geminiModel },
-        deepseek: { apiKey: deepseekApiKey, model: deepseekModel },
-        claude: { apiKey: claudeApiKey, model: claudeModel },
-        ollama: { url: ollamaUrl, model: ollamaModel }
+        provider: settings.activeProvider,
+        openai: settings.providers.openai,
+        gemini: settings.providers.gemini,
+        deepseek: settings.providers.deepseek,
+        claude: settings.providers.claude,
+        ollama: settings.providers.ollama,
     }, () => {
         setStatus("Settings saved successfully!")
         setTimeout(() => setStatus(""), 3000)
     })
+  }
+
+  // Helper to update specific provider settings
+  const updateProviderSetting = (provider: keyof typeof settings.providers, key: string, value: string) => {
+    setSettings(prev => ({
+        ...prev,
+        providers: {
+            ...prev.providers,
+            [provider]: {
+                ...prev.providers[provider],
+                [key]: value
+            }
+        }
+    }))
+  }
+
+  const setProvider = (val: string) => {
+      setSettings(prev => ({ ...prev, activeProvider: val }))
   }
 
   return (
@@ -136,7 +162,7 @@ function Options() {
                      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <div className="space-y-3">
                             <label className="text-sm font-medium">AI Provider</label>
-                            <Select value={provider} onValueChange={setProvider}>
+                            <Select value={settings.activeProvider} onValueChange={setProvider}>
                                 <SelectTrigger className={isDark ? "bg-neutral-900 border-neutral-800" : ""}>
                                     <SelectValue placeholder="Select provider" />
                                 </SelectTrigger>
@@ -150,19 +176,21 @@ function Options() {
                             <p className="text-xs text-muted-foreground">Select the AI provider you want to use.</p>
                         </div>
                         
-                        {provider === 'openai' && (
+                        {settings.activeProvider === 'openai' && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
                              <div className="space-y-3">
                                 <label className="text-sm font-medium">Model Selection</label>
-                                <Select value={openaiModel} onValueChange={setOpenaiModel}>
+                                <Select 
+                                    value={settings.providers.openai.model} 
+                                    onValueChange={(val) => updateProviderSetting('openai', 'model', val)}
+                                >
                                     <SelectTrigger className={isDark ? "bg-neutral-900 border-neutral-800" : ""}>
                                         <SelectValue placeholder="Select model" />
                                     </SelectTrigger>
                                     <SelectContent className={isDark ? "bg-neutral-900 border-neutral-800 text-white" : ""}>
-                                        <SelectItem value="gpt-4o">GPT-4o (Most Capable)</SelectItem>
-                                        <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-                                        <SelectItem value="gpt-4">GPT-4</SelectItem>
-                                        <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (Fastest)</SelectItem>
+                                        {MODEL_OPTIONS.openai.map(m => (
+                                            <SelectItem key={m} value={m}>{m}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -172,28 +200,29 @@ function Options() {
                                 <Input 
                                     type="password" 
                                     placeholder="sk-..." 
-                                    value={openaiApiKey} 
-                                    onChange={(e) => setOpenaiApiKey(e.target.value)}
+                                    value={settings.providers.openai.apiKey} 
+                                    onChange={(e) => updateProviderSetting('openai', 'apiKey', e.target.value)}
                                     className={isDark ? "bg-neutral-900 border-neutral-800" : ""}
                                 />
                             </div>
                         </div>
                         )}
 
-                        {provider === 'gemini' && (
+                        {settings.activeProvider === 'gemini' && (
                              <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
                                 <div className="space-y-3">
                                 <label className="text-sm font-medium">Model Selection</label>
-                                <Select value={geminiModel} onValueChange={setGeminiModel}>
+                                <Select 
+                                    value={settings.providers.gemini.model} 
+                                    onValueChange={(val) => updateProviderSetting('gemini', 'model', val)}
+                                >
                                     <SelectTrigger className={isDark ? "bg-neutral-900 border-neutral-800" : ""}>
                                         <SelectValue placeholder="Select model" />
                                     </SelectTrigger>
                                     <SelectContent className={isDark ? "bg-neutral-900 border-neutral-800 text-white" : ""}>
-                                        <SelectItem value="gemini-1.5-flash">Gemini 1.5 Flash</SelectItem>
-                                        <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
-                                        <SelectItem value="gemini-1.0-pro">Gemini 1.0 Pro</SelectItem>
-                                        <SelectItem value="gemini-3-flash-preview">gemini-3-flash-preview</SelectItem>
-                                        <SelectItem value="gemini-2.5-flash">gemini-2.5-flash</SelectItem>
+                                        {MODEL_OPTIONS.gemini.map(m => (
+                                            <SelectItem key={m} value={m}>{m}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -202,25 +231,29 @@ function Options() {
                                 <Input 
                                     type="password" 
                                     placeholder="AIza..." 
-                                    value={geminiApiKey} 
-                                    onChange={(e) => setGeminiApiKey(e.target.value)}
+                                    value={settings.providers.gemini.apiKey} 
+                                    onChange={(e) => updateProviderSetting('gemini', 'apiKey', e.target.value)}
                                     className={isDark ? "bg-neutral-900 border-neutral-800" : ""}
                                 />
                                 </div>
                             </div>
                         )}
 
-                        {provider === 'deepseek' && (
+                        {settings.activeProvider === 'deepseek' && (
                              <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
                                 <div className="space-y-3">
                                 <label className="text-sm font-medium">Model Selection</label>
-                                <Select value={deepseekModel} onValueChange={setDeepseekModel}>
+                                <Select 
+                                    value={settings.providers.deepseek.model} 
+                                    onValueChange={(val) => updateProviderSetting('deepseek', 'model', val)}
+                                >
                                     <SelectTrigger className={isDark ? "bg-neutral-900 border-neutral-800" : ""}>
                                         <SelectValue placeholder="Select model" />
                                     </SelectTrigger>
                                     <SelectContent className={isDark ? "bg-neutral-900 border-neutral-800 text-white" : ""}>
-                                        <SelectItem value="deepseek-chat">DeepSeek Chat</SelectItem>
-                                        <SelectItem value="deepseek-coder">DeepSeek Coder</SelectItem>
+                                        {MODEL_OPTIONS.deepseek.map(m => (
+                                            <SelectItem key={m} value={m}>{m}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -229,26 +262,29 @@ function Options() {
                                 <Input 
                                     type="password" 
                                     placeholder="sk-..." 
-                                    value={deepseekApiKey} 
-                                    onChange={(e) => setDeepseekApiKey(e.target.value)}
+                                    value={settings.providers.deepseek.apiKey} 
+                                    onChange={(e) => updateProviderSetting('deepseek', 'apiKey', e.target.value)}
                                     className={isDark ? "bg-neutral-900 border-neutral-800" : ""}
                                 />
                                 </div>
                             </div>
                         )}
 
-                        {provider === 'claude' && (
+                        {settings.activeProvider === 'claude' && (
                              <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
                                 <div className="space-y-3">
                                 <label className="text-sm font-medium">Model Selection</label>
-                                <Select value={claudeModel} onValueChange={setClaudeModel}>
+                                <Select 
+                                    value={settings.providers.claude.model} 
+                                    onValueChange={(val) => updateProviderSetting('claude', 'model', val)}
+                                >
                                     <SelectTrigger className={isDark ? "bg-neutral-900 border-neutral-800" : ""}>
                                         <SelectValue placeholder="Select model" />
                                     </SelectTrigger>
                                     <SelectContent className={isDark ? "bg-neutral-900 border-neutral-800 text-white" : ""}>
-                                        <SelectItem value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet</SelectItem>
-                                        <SelectItem value="claude-3-opus-20240229">Claude 3 Opus</SelectItem>
-                                        <SelectItem value="claude-3-haiku-20240307">Claude 3 Haiku</SelectItem>
+                                        {MODEL_OPTIONS.claude.map(m => (
+                                            <SelectItem key={m} value={m}>{m}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -257,8 +293,8 @@ function Options() {
                                 <Input 
                                     type="password" 
                                     placeholder="sk-ant-..." 
-                                    value={claudeApiKey} 
-                                    onChange={(e) => setClaudeApiKey(e.target.value)}
+                                    value={settings.providers.claude.apiKey} 
+                                    onChange={(e) => updateProviderSetting('claude', 'apiKey', e.target.value)}
                                     className={isDark ? "bg-neutral-900 border-neutral-800" : ""}
                                 />
                                 </div>
@@ -281,21 +317,28 @@ function Options() {
                             <label className="text-sm font-medium">Ollama Server URL</label>
                              <Input 
                                 placeholder="http://localhost:11434" 
-                                value={ollamaUrl} 
-                                onChange={(e) => setOllamaUrl(e.target.value)}
+                                value={settings.providers.ollama.url} 
+                                onChange={(e) => updateProviderSetting('ollama', 'url', e.target.value)}
                                 className={isDark ? "bg-neutral-900 border-neutral-800" : ""}
                             />
                         </div>
 
                         <div className="space-y-3">
-                            <label className="text-sm font-medium">Model Name</label>
-                             <Input 
-                                placeholder="llama3" 
-                                value={ollamaModel} 
-                                onChange={(e) => setOllamaModel(e.target.value)}
-                                className={isDark ? "bg-neutral-900 border-neutral-800" : ""}
-                            />
-                            <p className="text-xs text-muted-foreground">This exact model name must be pulled locally via `ollama pull {ollamaModel || '<model>'}`</p>
+                            <label className="text-sm font-medium">Model Selection</label>
+                             <Select 
+                                value={settings.providers.ollama.model} 
+                                onValueChange={(val) => updateProviderSetting('ollama', 'model', val)}
+                             >
+                                <SelectTrigger className={isDark ? "bg-neutral-900 border-neutral-800" : ""}>
+                                    <SelectValue placeholder="Select model" />
+                                </SelectTrigger>
+                                <SelectContent className={isDark ? "bg-neutral-900 border-neutral-800 text-white" : ""}>
+                                    {MODEL_OPTIONS.ollama.map(m => (
+                                        <SelectItem key={m} value={m}>{m}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-muted-foreground">This exact model name must be pulled locally via `ollama pull {settings.providers.ollama.model || '<model>'}`</p>
                         </div>
                     </div>
                 )}
