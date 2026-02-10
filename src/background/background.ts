@@ -79,6 +79,7 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
       return;
     }
 
+    // Create a new chat list in storage with the provided ID (only one that is currently user is with interacting with the sidebar, so we can safely set it as current)
     chrome.storage.sync.set({ currentChatListId: chatListId }, () => {
       console.log(`Set currentChatListId in storage: ${chatListId}`);
       sendResponse({ status: "success" });
