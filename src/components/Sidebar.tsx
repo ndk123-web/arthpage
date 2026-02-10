@@ -47,6 +47,7 @@ export default function Sidebar() {
   const [provider, setProvider] = useState<Provider>("openai");
   const [model, setModel] = useState("gpt-4o");
   const [ollamaUrl, setOllamaUrl] = useState("http://localhost:11434");
+  const [currentChatListId, setCurrentChatListId] = useState<string | null>(null); // For future chat list management
 
   // Effect for Theme
   useEffect(() => {
@@ -187,13 +188,29 @@ export default function Sidebar() {
 
     console.log("Final Prompt to be sent to background:", prompt);
 
+    if (!currentChatListId) {
+      const newChatListId = `chat-${Date.now()}`;
+      setCurrentChatListId(newChatListId);
+      
+      chrome.runtime.sendMessage({type: "create_new_chat_list", chatListId: newChatListId}, (response) => {
+        if (response && response.status === "success") {
+          console.log(`New chat list created in storage with ID: ${newChatListId}`);
+        } else {
+          console.error("Failed to create new chat list in storage:", response);
+        }
+      })
+
+      console.log("No currentChatListId found, created new one:", newChatListId);
+    }
+
     chrome.runtime.sendMessage({
       type: "chat_message", 
       provider, 
       model, 
       mode, 
       prompt: prompt, 
-      ollamaUrl
+      ollamaUrl,
+      currentChatListId
     }, ({response}) => {
       console.log("Received response from background script:", response);
       setMessages((prev) => [
@@ -202,9 +219,23 @@ export default function Sidebar() {
       ]);
       setLoading(false);
     })
-
     // Mock response block removed to allow real API response
   };
+
+  const handleCreateNewChat = () => {
+    // create a random ID for the chat list item
+    const newChatListId = `chat-${Date.now()}`;
+    setCurrentChatListId(newChatListId);
+
+    chrome.runtime.sendMessage({type: "create_new_chat_list", chatListId: newChatListId}, (response) => {      if (response && response.status === "success") {
+        console.log(`New chat list created in storage with ID: ${newChatListId}`);
+      } else {
+        console.error("Failed to create new chat list in storage:", response);
+      } 
+    });
+    
+    console.log("Creating new chat with ID:", newChatListId);
+  }
 
   return (
     <div 
@@ -250,6 +281,11 @@ export default function Sidebar() {
             </Button>
         </div>
       </div>
+
+
+      <button className="m-4 px-3 py-1 rounded-md text-xs bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleCreateNewChat}>
+        New Chat 
+      </button>
 
       {/* Extra Settings Panel (Collapsible) */}
       {showSettings && (

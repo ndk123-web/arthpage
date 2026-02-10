@@ -3,7 +3,7 @@ import type { Chat } from "@/shared/types/chat";
 export const MAX_CHATS = 50;
 export const MAX_MESSAGES_PER_CHAT = 300;
 
-const STORAGE_KEY = "arthpage_chats";
+export const STORAGE_KEY = "arthpage_chats";
 
 // 1️⃣ Get all chats
 export function getChats(): Promise<Chat[]> {
