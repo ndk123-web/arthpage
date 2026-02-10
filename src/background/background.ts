@@ -79,13 +79,10 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
       return;
     }
 
-    chrome.storage.sync.set(
-      { [chatListId]: { id: chatListId, messages: [] } },
-      () => {
-        console.log(`New chat list with ID ${chatListId} created in storage.`);
-        sendResponse({ status: "success" });
-      },
-    );
+    chrome.storage.sync.set({ currentChatListId: chatListId }, () => {
+      console.log(`Set currentChatListId in storage: ${chatListId}`);
+      sendResponse({ status: "success" });
+    });
 
     return true; // Indicate that we will send a response asynchronously
   }
