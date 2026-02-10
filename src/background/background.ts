@@ -29,7 +29,7 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
       
       console.log(`[Offline] Initializing Ollama: URL=${url}, Model=${targetModel}`);
 
-      const ollamaClient = new OllamaClient(url, targetModel);
+      const ollamaClient = new OllamaClient(url, targetModel, "normal");
       ollamaClient.chat(prompt).then((response) => {
         sendResponse({ response });
       });

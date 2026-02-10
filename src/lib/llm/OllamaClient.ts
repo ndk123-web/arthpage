@@ -10,7 +10,7 @@ export class OllamaClient implements LLMClient {
   constructor(
     private baseUrl: string,
     private model: string,
-    private way: "smart" | "normal" = "normal",
+    private way: "smart" | "normal" = "normal", // default to normal way, can be overridden to smart way for streaming responses
   ) {}
 
   async smartWay(prompt: string): Promise<string> {
