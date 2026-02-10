@@ -2,6 +2,7 @@
 
 import { GeminiClient } from "@/lib/llm/GeminiClient";
 import { OllamaClient } from "@/lib/llm/OllamaClient";
+import { addMessageInStorage } from "./utils/addMessageInStorage";
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log("Extension Installed");
@@ -15,22 +16,35 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
 
   if (msg.type === "chat_message") {
     // Destructure properties sent from Sidebar
-    const { provider, mode, model, prompt, ollamaUrl } = msg;
-    
+    const { provider, mode, model, prompt, ollamaUrl, currentChatListId } = msg;
+
     // Fallback defaults
     const activeProvider = provider || "gemini";
-    const activeModel = model || (activeProvider === "gemini" ? "gemini-1.5-flash" : "default-model");
+    const activeModel =
+      model ||
+      (activeProvider === "gemini" ? "gemini-1.5-flash" : "default-model");
 
     // Offline Mode Handling
     if (mode === "offline") {
       // Use provided URL and Model, fallback to specific defaults if missing
       const url = ollamaUrl || "http://localhost:11434";
-      const targetModel = model || "mistral"; 
-      
-      console.log(`[Offline] Initializing Ollama: URL=${url}, Model=${targetModel}`);
+      const targetModel = model || "mistral";
 
-      const ollamaClient = new OllamaClient(url, targetModel);
+      console.log(
+        `[Offline] Initializing Ollama: URL=${url}, Model=${targetModel}`,
+      );
+
+      const ollamaClient = new OllamaClient(url, targetModel, "normal");
       ollamaClient.chat(prompt).then((response) => {
+        // before sending the response, let's add the message to storage
+        if (currentChatListId) {
+          addMessageInStorage(prompt, response, currentChatListId);
+          console.log(
+            `Added message to storage for chat ID: ${currentChatListId}`,
+          );
+        }
+
+        // Send the response back to the sender (Sidebar)
         sendResponse({ response });
       });
 
@@ -55,6 +69,25 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
         response: `Provider ${activeProvider} is not configured in background.`,
       });
     }
+  }
+
+  if (msg.type === "create_new_chat_list") {
+    const { chatListId } = msg;
+
+    if (!chatListId) {
+      sendResponse({ status: "error", message: "chatListId is required" });
+      return;
+    }
+
+    chrome.storage.sync.set(
+      { [chatListId]: { id: chatListId, messages: [] } },
+      () => {
+        console.log(`New chat list with ID ${chatListId} created in storage.`);
+        sendResponse({ status: "success" });
+      },
+    );
+
+    return true; // Indicate that we will send a response asynchronously
   }
 
   return true;

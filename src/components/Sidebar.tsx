@@ -13,6 +13,7 @@ import {
 } from "./ui/select";
 import { cn } from "@/lib/utils";
 import { X, Send, Bot, Moon, Sun, PanelLeft, PanelRight, Settings2 } from "lucide-react";
+import { extractPageContentSafe } from "@/content/utils/extractContent";
 
 // Types
 type Message = {
@@ -46,6 +47,7 @@ export default function Sidebar() {
   const [provider, setProvider] = useState<Provider>("openai");
   const [model, setModel] = useState("gpt-4o");
   const [ollamaUrl, setOllamaUrl] = useState("http://localhost:11434");
+  const [currentChatListId, setCurrentChatListId] = useState<string | null>(null); // For future chat list management
 
   // Effect for Theme
   useEffect(() => {
@@ -136,39 +138,79 @@ export default function Sidebar() {
     if (root) root.remove();
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
     
+    // Capture input immediately
+    const userQuestion = input;
+
     // Add user message
-    const newMessages = [...messages, { role: "user" as const, content: input }];
+    const newMessages = [...messages, { role: "user" as const, content: userQuestion }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
 
-    // get the keys and values from chrome extension storage and log them
-    // chrome.storage.sync.get(["openaiApiKey", "openaiModel", "ollamaUrl", "ollamaModel"], (result) => {
-    //   console.log("Current Settings:");
-    //   console.log("OpenAI API Key:", result.openaiApiKey ? "********" : "Not Set");
-    //   console.log("OpenAI Model:", result.openaiModel || "Not Set");
-    //   console.log("Ollama URL:", result.ollamaUrl || "Not Set");
-    //   console.log("Ollama Model:", result.ollamaModel || "Not Set");
-    // });
-
-    // call the appropriate API based on provider and model settings and get the response
-    
     // DEBUG: Log ALL storage data before sending
     chrome.storage.sync.get(null, (items) => {
        console.log("🛑 DEBUG: Full Storage Dump:", items);
-       console.log("👉 Sending Message with:", { provider, mode, model, prompt: input, ollamaUrl });
+       console.log("👉 Sending Message with:", { provider, mode, model, prompt: userQuestion, ollamaUrl });
     });
+
+    let prompt = userQuestion;
+
+    try {
+        // Await the content extraction properly
+        const contentData = await extractPageContentSafe();
+
+        prompt = `
+        You are ArthPage, an AI assistant embedded in a webpage.
+        Your job is to help the user understand and interact with the webpage content.
+
+        Rules:
+        - Prefer answering using the provided webpage content.
+        - If the answer is not fully in the content, use general knowledge but stay relevant.
+        - If the question is completely unrelated to the page, say so politely.
+        - Be clear, concise, and helpful.
+
+          User Prompt: ${userQuestion}
+
+          Page Title: ${contentData.title}
+          Page URL: ${contentData.url}
+          Domain: ${contentData.domain}
+
+          Page Content:
+          ${contentData.content}
+        `;
+    } catch (error) {
+        console.error("Failed to extract page content:", error);
+        // Fallback: prompt remains as userQuestion
+    }
+
+    console.log("Final Prompt to be sent to background:", prompt);
+
+    if (!currentChatListId) {
+      const newChatListId = `chat-${Date.now()}`;
+      setCurrentChatListId(newChatListId);
+      
+      chrome.runtime.sendMessage({type: "create_new_chat_list", chatListId: newChatListId}, (response) => {
+        if (response && response.status === "success") {
+          console.log(`New chat list created in storage with ID: ${newChatListId}`);
+        } else {
+          console.error("Failed to create new chat list in storage:", response);
+        }
+      })
+
+      console.log("No currentChatListId found, created new one:", newChatListId);
+    }
 
     chrome.runtime.sendMessage({
       type: "chat_message", 
       provider, 
       model, 
       mode, 
-      prompt: input, 
-      ollamaUrl
+      prompt: prompt, 
+      ollamaUrl,
+      currentChatListId
     }, ({response}) => {
       console.log("Received response from background script:", response);
       setMessages((prev) => [
@@ -177,9 +219,23 @@ export default function Sidebar() {
       ]);
       setLoading(false);
     })
-
     // Mock response block removed to allow real API response
   };
+
+  const handleCreateNewChat = () => {
+    // create a random ID for the chat list item
+    const newChatListId = `chat-${Date.now()}`;
+    setCurrentChatListId(newChatListId);
+
+    chrome.runtime.sendMessage({type: "create_new_chat_list", chatListId: newChatListId}, (response) => {      if (response && response.status === "success") {
+        console.log(`New chat list created in storage with ID: ${newChatListId}`);
+      } else {
+        console.error("Failed to create new chat list in storage:", response);
+      } 
+    });
+    
+    console.log("Creating new chat with ID:", newChatListId);
+  }
 
   return (
     <div 
@@ -225,6 +281,11 @@ export default function Sidebar() {
             </Button>
         </div>
       </div>
+
+
+      <button className="m-4 px-3 py-1 rounded-md text-xs bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleCreateNewChat}>
+        New Chat 
+      </button>
 
       {/* Extra Settings Panel (Collapsible) */}
       {showSettings && (
