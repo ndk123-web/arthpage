@@ -34,19 +34,36 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
         `[Offline] Initializing Ollama: URL=${url}, Model=${targetModel}`,
       );
 
+      // what if it fails? We should handle that case as well
       const ollamaClient = new OllamaClient(url, targetModel, "normal");
-      ollamaClient.chat(prompt).then((response) => {
-        // before sending the response, let's add the message to storage
-        if (currentChatListId) {
-          addMessageInStorage(prompt, response, currentChatListId);
-          console.log(
-            `Added message to storage for chat ID: ${currentChatListId}`,
-          );
-        }
 
-        // Send the response back to the sender (Sidebar)
-        sendResponse({ response });
+      // Create a timeout promise that rejects after 30 seconds
+      const timeoutPromise = new Promise<string>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error("Request timed out (30s)"));
+        }, 30000);
       });
+
+      Promise.race([ollamaClient.chat(prompt), timeoutPromise])
+        .then((response) => {
+          // before sending the response, let's add the message to storage
+          if (currentChatListId) {
+            addMessageInStorage(prompt, response, currentChatListId);
+            console.log(
+              `Added message to storage for chat ID: ${currentChatListId}`,
+            );
+          }
+
+          // Send the response back to the sender (Sidebar)
+          sendResponse({ response });
+        })
+        .catch((error) => {
+          console.error("Ollama request failed or timed out:", error);
+          sendResponse({
+            response:
+              "Error: Server did not respond within 30 seconds or failed.",
+          });
+        });
 
       // Indicate that we will send a response asynchronously
       return true;
