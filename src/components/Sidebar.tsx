@@ -195,9 +195,12 @@ export default function Sidebar() {
 
     console.log("Final Prompt to be sent to background:", prompt);
 
-    if (!currentChatListId) {
+    let activeChatId = currentChatListId;
+
+    if (!activeChatId) {
       const newChatListId = `chat-${Date.now()}`;
       setCurrentChatListId(newChatListId);
+      activeChatId = newChatListId;
       
       chrome.runtime.sendMessage({type: "create_new_chat_list", chatListId: newChatListId}, (response) => {
         if (response && response.status === "success") {
@@ -217,7 +220,8 @@ export default function Sidebar() {
       mode, 
       prompt: prompt, 
       ollamaUrl,
-      currentChatListId
+      actualUserPrompt: userQuestion, // Send the original user question for better context in background processing and storage
+      currentChatListId: activeChatId
     }, ({response}) => {
       console.log("Received response from background script:", response);
       setMessages((prev) => [
