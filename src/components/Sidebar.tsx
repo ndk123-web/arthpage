@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { cn } from "@/lib/utils";
-import { X, Send, Bot, Moon, Sun, PanelLeft, PanelRight, Settings2 } from "lucide-react";
+import { X, Send, Bot, Moon, Sun, PanelLeft, PanelRight, Settings2, History, MessageSquarePlus, MessageSquare } from "lucide-react";
 import { extractPageContentSafe } from "@/content/utils/extractContent";
 
 // Types
@@ -20,6 +20,14 @@ type Message = {
   role: "user" | "assistant";
   content: string;
 };
+
+type ChatHistoryItem = {
+    id: string;
+    title: string;
+    createdAt: number;
+    messages: any[];
+}
+
 
 type Provider = "openai" | "gemini" | "claude" | "deepseek" | "ollama";
 type SidebarSide = "left" | "right";
@@ -31,10 +39,12 @@ export default function Sidebar() {
   
   // Sidebar State
   const [side, setSide] = useState<SidebarSide>("right");
-  const [width, setWidth] = useState(400);
+  const [width, setWidth] = useState(350);
   const [isResizing, setIsResizing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   
+  const [view, setView] = useState<'chat' | 'history'>('chat'); // Toggle View State
+  const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>([]);  
   // Chat State
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: "Hi! How can I help you with this page today?" }
@@ -86,7 +96,34 @@ export default function Sidebar() {
             setMode(result.mode as Mode);
         } 
     });
+    
+    // Initial fetch of history
+    fetchChatHistory();
   }, []);
+
+  const fetchChatHistory = () => {
+    chrome.storage.local.get(["arthpage_chats"], (result) => {
+        if (result.arthpage_chats) {
+            const chats = result.arthpage_chats as ChatHistoryItem[];
+            // Sort by newest first
+            const sorted = chats.sort((a, b) => b.createdAt - a.createdAt);
+            setChatHistory(sorted);
+        }
+    });
+  }
+
+  const loadChat = (chat: ChatHistoryItem) => {
+      setCurrentChatListId(chat.id);
+      // Map stored messages to UI messages (skipping system messages if any, or handling timestamps)
+      const uiMessages = chat.messages.map(m => ({
+          role: m.role as "user" | "assistant", 
+          content: m.content
+      })).filter(m => m.role !== 'system' as any); // Type assertion to avoid issues if system adds up
+      
+      setMessages(uiMessages);
+      setView('chat');
+  }
+
 
   // Sync "current" selection to storage whenever it changes
   useEffect(() => {
@@ -237,6 +274,10 @@ export default function Sidebar() {
     // create a random ID for the chat list item
     const newChatListId = `chat-${Date.now()}`;
     setCurrentChatListId(newChatListId);
+    
+    // Reset Internal State for new chat
+    setMessages([{ role: "assistant", content: "Hi! How can I help you with this page today?" }]);
+    setView('chat'); // Switch to chat view
 
     chrome.runtime.sendMessage({type: "create_new_chat_list", chatListId: newChatListId}, (response) => {      if (response && response.status === "success") {
         console.log(`New chat list created in storage with ID: ${newChatListId}`);
@@ -270,33 +311,65 @@ export default function Sidebar() {
       />
 
       {/* Header */}
-      <div className={cn("flex items-center justify-between p-4 border-b backdrop-blur supports-[backdrop-filter]:bg-background/60", isDark ? 'border-neutral-800 bg-black' : 'border-gray-200 bg-white')}>
-        <div className="flex items-center gap-2 font-semibold">
-           <div className={cn("h-8 w-8 rounded-full flex items-center justify-center shadow-sm", isDark ? 'bg-white text-black' : 'bg-black text-white')}>
-             <Bot className="h-5 w-5" />
-           </div>
-           
-           <div className="flex flex-col">
-              <span className="text-sm leading-none">ArthaPage</span>
-              <span className="text-[10px] text-muted-foreground font-normal mt-0.5 opacity-70">
-                Drag edge to resize
-              </span>
-           </div>
-        </div>
-        <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={() => setShowSettings(!showSettings)} className={cn("h-8 w-8 rounded-full", showSettings && "bg-accent")}>
-                <Settings2 className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={closeSidebar} className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive">
-                <X className="h-4 w-4" />
-            </Button>
-        </div>
+      <div className={cn("flex flex-col border-b backdrop-blur supports-[backdrop-filter]:bg-background/60", isDark ? 'border-neutral-800 bg-black' : 'border-gray-200 bg-white')}>
+          <div className="flex items-center justify-between p-4 pb-2">
+            <div className="flex items-center gap-2 font-semibold">
+            <div className={cn("h-8 w-8 rounded-full flex items-center justify-center shadow-sm", isDark ? 'bg-white text-black' : 'bg-black text-white')}>
+                <Bot className="h-5 w-5" />
+            </div>
+            
+            <div className="flex flex-col">
+                <span className="text-sm leading-none">ArthaPage</span>
+                <span className="text-[10px] text-muted-foreground font-normal mt-0.5 opacity-70">
+                    Drag edge to resize
+                </span>
+            </div>
+            </div>
+            <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" onClick={handleCreateNewChat} title="New Chat" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary">
+                    <MessageSquarePlus className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => setShowSettings(!showSettings)} className={cn("h-8 w-8 rounded-full", showSettings && "bg-accent")}>
+                    <Settings2 className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={closeSidebar} className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive">
+                    <X className="h-4 w-4" />
+                </Button>
+            </div>
+          </div>
+
+          {/* View Toggle */}
+          <div className="px-4 pb-3 flex items-center gap-2">
+              <div className={cn("flex items-center p-1 rounded-lg border w-full", isDark ? "bg-neutral-900 border-neutral-800" : "bg-gray-100 border-gray-200")}>
+                  <button 
+                    onClick={() => setView('chat')}
+                    className={cn("flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded-md transition-all", 
+                        view === 'chat' 
+                        ? (isDark ? "bg-neutral-800 text-white shadow-sm" : "bg-white text-black shadow-sm") 
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                      <MessageSquare className="h-3.5 w-3.5" />
+                      Chat
+                  </button>
+                  <button 
+                    onClick={() => {
+                        fetchChatHistory();
+                        setView('history');
+                    }}
+                    className={cn("flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded-md transition-all", 
+                        view === 'history' 
+                        ? (isDark ? "bg-neutral-800 text-white shadow-sm" : "bg-white text-black shadow-sm") 
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                      <History className="h-3.5 w-3.5" />
+                      History
+                  </button>
+              </div>
+          </div>
       </div>
 
-
-      <button className="m-4 px-3 py-1 rounded-md text-xs bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleCreateNewChat}>
-        New Chat 
-      </button>
 
       {/* Extra Settings Panel (Collapsible) */}
       {showSettings && (
@@ -338,30 +411,79 @@ export default function Sidebar() {
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 custom-scrollbar">
-        {messages.map((msg, i) => (
-            <div key={i} className={cn("flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300", msg.role === 'user' ? "justify-end" : "justify-start")}>
-                <div className={cn("rounded-2xl px-4 py-2.5 max-w-[85%] text-sm shadow-sm break-words whitespace-pre-wrap", 
-                    msg.role === 'user' 
-                        ? (isDark ? "bg-white text-black rounded-br-none" : "bg-black text-white rounded-br-none")
-                        : (isDark ? "bg-neutral-900 text-gray-100 border border-neutral-800 rounded-bl-none" : "bg-gray-100 text-gray-900 rounded-bl-none"))}>
-                    {msg.content}
+        {view === 'chat' ? (
+            <>
+                {messages.map((msg, i) => (
+                    <div key={i} className={cn("flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300", msg.role === 'user' ? "justify-end" : "justify-start")}>
+                        <div className={cn("rounded-2xl px-4 py-2.5 max-w-[85%] text-sm shadow-sm break-words whitespace-pre-wrap", 
+                            msg.role === 'user' 
+                                ? (isDark ? "bg-white text-black rounded-br-none" : "bg-black text-white rounded-br-none")
+                                : (isDark ? "bg-neutral-900 text-gray-100 border border-neutral-800 rounded-bl-none" : "bg-gray-100 text-gray-900 rounded-bl-none"))}>
+                            {msg.content}
+                        </div>
+                    </div>
+                ))}
+                {loading && (
+                    <div className="flex w-full justify-start animate-in fade-in slide-in-from-bottom-2">
+                        <div className={cn("rounded-2xl rounded-bl-none px-4 py-2 text-xs animate-pulse flex items-center gap-1", isDark ? "bg-neutral-900 text-gray-400" : "bg-gray-100 text-gray-500")}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce delay-0"></span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce delay-150"></span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce delay-300"></span>
+                        </div>
+                    </div>
+                )}
+            </>
+        ) : (
+            <div className="space-y-3">
+                <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-semibold opacity-70">Recent Conversations</h3>
+                    <Button variant="outline" size="sm" onClick={handleCreateNewChat} className="h-7 text-xs gap-1.5">
+                        <MessageSquarePlus className="h-3.5 w-3.5" />
+                        New Chat
+                    </Button>
                 </div>
+                
+                {chatHistory.length === 0 ? (
+                     <div className="flex flex-col items-center justify-center py-10 opacity-50 space-y-2">
+                        <History className="h-8 w-8 mb-2" />
+                        <span className="text-xs">No history found</span>
+                     </div>
+                ) : (
+                    chatHistory.map((chat) => (
+                        <div 
+                            key={chat.id} 
+                            onClick={() => loadChat(chat)}
+                            className={cn(
+                                "p-3 rounded-lg border cursor-pointer hover:bg-accent transition-all group", 
+                                isDark ? "border-neutral-800 bg-neutral-900/50" : "border-gray-200 bg-gray-50/50",
+                                currentChatListId === chat.id && "border-primary/50"
+                            )}
+                        >
+                            <div className="flex items-start justify-between">
+                                <span className="text-sm font-medium line-clamp-1 group-hover:text-primary transition-colors">
+                                    {chat.messages.find(m => m.role === 'user')?.content.slice(0, 40) || "New Conversation"}...
+                                </span>
+                                <span className="text-[10px] opacity-50 whitespace-nowrap ml-2">
+                                    {new Date(chat.createdAt).toLocaleDateString()}
+                                </span>
+                            </div>
+                            <div className="mt-1 flex items-center gap-2">
+                                <p className="text-xs opacity-60 line-clamp-2">
+                                   {chat.messages.filter(m => m.role === 'assistant').pop()?.content.slice(0, 60) || "No response yet"}
+                                </p>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
-        ))}
-        {loading && (
-             <div className="flex w-full justify-start animate-in fade-in slide-in-from-bottom-2">
-                <div className={cn("rounded-2xl rounded-bl-none px-4 py-2 text-xs animate-pulse flex items-center gap-1", isDark ? "bg-neutral-900 text-gray-400" : "bg-gray-100 text-gray-500")}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce delay-0"></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce delay-150"></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce delay-300"></span>
-                </div>
-             </div>
         )}
       </div>
 
       {/* Settings & Input Area */}
-      <div className={cn("p-4 border-t space-y-3", isDark ? "bg-neutral-900/10 border-neutral-800" : "bg-gray-50/50 border-gray-200")}>
+      <div className={cn("p-3 border-t space-y-3", isDark ? "bg-neutral-900/30 border-neutral-800" : "bg-gray-50/80 border-gray-100")}>
         
+        {view === 'chat' ? (
+        <>
         {/* Model Selector Bar */}
         <div className="grid grid-cols-2 gap-2">
             {/* Mode Selector */}
@@ -396,7 +518,7 @@ export default function Sidebar() {
         </div>
 
         {/* Model Selector (Dependent on Provider/Mode) */}
-        {!showSettings && ( // Hide if expanded settings are open to save space, or just always show? Let's always show but keep it compact.
+        {/* Always show model selector now */}
              <Select value={model} onValueChange={setModel}>
               <SelectTrigger className={cn("h-8 text-xs w-full", isDark ? "bg-neutral-900 border-neutral-800 text-gray-300" : "bg-white border-gray-200")}>
                 <SelectValue placeholder="Select Model" />
@@ -446,7 +568,6 @@ export default function Sidebar() {
                   )}
               </SelectContent>
             </Select>
-        )}
 
          {mode === 'offline' && (
              <Input 
@@ -463,19 +584,16 @@ export default function Sidebar() {
                 value={input}
                 onChange={(e) => {
                     setInput(e.target.value);
-                    // Reset height to auto to shrink if text is deleted, then grow to scrollHeight
-                    e.target.style.height = 'auto';
-                    e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px'; // Cap max height at 200px
+                    // Reset height to auto to shrink if text is deleted, th150) + 'px'; // Cap max height
                 }}
-                placeholder="Type a message..."
+                placeholder="Ask ArthPage..."
                 rows={1}
-                className={cn("min-h-[60px] max-h-[200px] pr-12 resize-none focus-visible:ring-1 shadow-sm py-3", isDark ? "bg-neutral-900 border-neutral-800 text-gray-100 placeholder:text-neutral-500 focus-visible:ring-neutral-700" : "bg-white border-gray-200 text-gray-900")}
+                className={cn("min-h-[44px] max-h-[150px] pr-10 resize-none focus-visible:ring-1 shadow-sm py-3 text-sm rounded-xl", isDark ? "bg-neutral-900 border-neutral-800 text-gray-100 placeholder:text-neutral-500 focus-visible:ring-neutral-700" : "bg-white border-gray-200 text-gray-900")}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         handleSend();
-                        // Reset height after sending (need to target element carefully, simple setInput handles value, but height needs reset)
-                        // Ideally we use a Ref, but simple hack for now:
+                        // Reset height
                         const target = e.target as HTMLTextAreaElement;
                         setTimeout(() => {
                            target.style.height = 'auto'; 
@@ -485,20 +603,27 @@ export default function Sidebar() {
             />
             <Button 
                 size="icon" 
-                className={cn("absolute bottom-2 right-2 h-8 w-8 rounded-lg shadow-sm transition-all hover:scale-105 active:scale-95", isDark ? "bg-white text-black hover:bg-gray-200" : "bg-black text-white hover:bg-neutral-800")}
+                className={cn("absolute bottom-1.5 right-1.5 h-7 w-7 rounded-lg shadow-sm transition-all hover:scale-105 active:scale-95", isDark ? "bg-white text-black hover:bg-gray-200" : "bg-black text-white hover:bg-neutral-800")}
                 onClick={handleSend}
                 disabled={!input.trim() || loading}
             >
-                <Send className="h-4 w-4" />
+                <Send className="h-3.5 w-3.5" />
             </Button>
         </div>
         
-        <div className="flex justify-between text-[10px] text-muted-foreground px-1 font-medium">
-            <span className={cn("flex items-center gap-1 opacity-70", isDark ? "text-neutral-400" : "text-gray-500")}>
-                {mode === 'online' ? '🟢 Cloud Connected' : '🟠 Local Server'}
+        <div className="flex justify-between text-[10px] text-muted-foreground px-1 font-medium select-none">
+            <span className={cn("flex items-center gap-1.5 opacity-70", isDark ? "text-neutral-400" : "text-gray-500")}>
+                <span className={cn("w-1.5 h-1.5 rounded-full", mode === 'online' ? "bg-green-500" : "bg-orange-500")}></span>
+                {mode === 'online' ? 'Online' : 'Local'}
             </span>
             <span className={cn("opacity-70", isDark ? "text-neutral-400" : "text-gray-500")}>{model}</span>
         </div>
+        </>
+        ) : (
+            <div className="flex items-center justify-center p-2 text-xs text-muted-foreground opacity-50">
+                Select a chat to continue
+            </div>
+        )}
       </div>
     </div>
   );
