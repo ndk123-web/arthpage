@@ -584,16 +584,21 @@ export default function Sidebar() {
         )}
 
         {/* Chat Input */}
-        <div className="relative">
+        <div className={cn("relative flex items-end w-full p-2 border rounded-2xl shadow-sm transition-colors bg-white dark:bg-neutral-900", isDark ? "border-neutral-800" : "border-gray-200")}>
             <Textarea 
                 value={input}
                 onChange={(e) => {
                     setInput(e.target.value);
-                    // Reset height to auto to shrink if text is deleted, th150) + 'px'; // Cap max height
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto'; // Reset height
+                    target.style.height = `${Math.min(target.scrollHeight, 200)}px`; // Set new height capped at 200px
                 }}
-                placeholder="Ask ArthPage..."
+                placeholder="Message ArthPage..."
                 rows={1}
-                className={cn("min-h-[44px] max-h-[150px] pr-10 resize-none focus-visible:ring-1 shadow-sm py-3 text-sm rounded-xl", isDark ? "bg-neutral-900 border-neutral-800 text-gray-100 placeholder:text-neutral-500 focus-visible:ring-neutral-700" : "bg-white border-gray-200 text-gray-900")}
+                className={cn(
+                    "min-h-[60px] max-h-[200px] w-full resize-none border-0 shadow-none focus-visible:ring-0 py-2.5 pr-10 text-sm bg-transparent custom-scrollbar", 
+                    isDark ? "text-gray-100 placeholder:text-neutral-500" : "text-gray-900 placeholder:text-gray-400"
+                )}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
@@ -608,11 +613,20 @@ export default function Sidebar() {
             />
             <Button 
                 size="icon" 
-                className={cn("absolute bottom-1.5 right-1.5 h-7 w-7 rounded-lg shadow-sm transition-all hover:scale-105 active:scale-95", isDark ? "bg-white text-black hover:bg-gray-200" : "bg-black text-white hover:bg-neutral-800")}
+                className={cn(
+                    "absolute right-2 bottom-2 h-8 w-8 rounded-lg transition-all hover:opacity-80 disabled:opacity-50 mb-0.5 mr-0.5", 
+                    isDark ? "bg-white text-black hover:bg-gray-200" : "bg-black text-white hover:bg-neutral-800"
+                )}
                 onClick={handleSend}
                 disabled={!input.trim() || loading}
             >
-                <Send className="h-3.5 w-3.5" />
+                <div className={cn("transition-transform duration-300", loading ? "animate-spin" : "")}>
+                   {loading ? (
+                     <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full block"></span>
+                   ) : (
+                     <Send className="h-4 w-4" />
+                   )}
+                </div>
             </Button>
         </div>
         

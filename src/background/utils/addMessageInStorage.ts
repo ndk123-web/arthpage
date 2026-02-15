@@ -30,15 +30,18 @@ export function addMessageInStorage(
             timestamp: Date.now() + 1,
           },
         ];
+
+        // Update the chat with the new messages and update the createdAt timestamp to reflect recent activity
         return {
           ...chat,
-          messages: newMessages,
-          createdAt: Date.now(), // Update timestamp for sorting
+          messages: newMessages, // replace old messages with new messages array
+          createdAt: Date.now(), // replace old timestamp with current timestamp to reflect recent activity
         };
       }
       return chat;
     });
 
+    // if not found, create a new chat with this message and set it as currentChatListId
     if (!chatFound) {
       updatedChats.push({
         id: chatListId,
