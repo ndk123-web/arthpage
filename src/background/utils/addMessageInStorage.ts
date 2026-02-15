@@ -33,41 +33,40 @@ export function addMessageInStorage(
         return {
           ...chat,
           messages: newMessages,
+          createdAt: Date.now(), // Update timestamp for sorting
         };
       }
       return chat;
     });
 
     if (!chatFound) {
-      // If the chatListId is not found, create a new chat with the message
       updatedChats.push({
         id: chatListId,
+        createdAt: Date.now(), // Add timestamp for new chat
         name: `Chat ${chatListId}`,
         messages: [
           {
             id: `msg-${Date.now()}`,
             role: "user",
             content: prompt,
-            timestamp: Date.now(),
+            createdAt: Date.now(),
           },
           {
             id: `msg-${Date.now() + 1}`,
             role: "assistant",
             content: response,
-            timestamp: Date.now() + 1,
+            createdAt: Date.now() + 1,
           },
         ],
       });
 
       // Also set this new chatListId as the currentChatListId in storage
-      chrome.storage.sync.set({ currentChatListId: chatListId }, () => {
-        console.log(`Set currentChatListId in storage: ${chatListId}`);
-      });
+      chrome.storage.sync.set({ currentChatListId: chatListId });
     }
 
     console.log("Updated chats to be saved:", updatedChats);
 
-    // Save the updated chats back to storage
+    // Save the updated chats back to storage should be an array
     chrome.storage.local.set({ [STORAGE_KEY]: updatedChats }, () => {
       console.log("Messages saved to storage.");
     });

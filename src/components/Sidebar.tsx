@@ -420,6 +420,11 @@ export default function Sidebar() {
                                 ? (isDark ? "bg-white text-black rounded-br-none" : "bg-black text-white rounded-br-none")
                                 : (isDark ? "bg-neutral-900 text-gray-100 border border-neutral-800 rounded-bl-none" : "bg-gray-100 text-gray-900 rounded-bl-none"))}>
                             {msg.content}
+                            
+                            {/* time like 3:02 PM */}
+                            <div className={cn("text-[10px] opacity-50 text-right mt-1", isDark ? "text-neutral-100" : "text-gray-700")}>
+                                {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
                         </div>
                     </div>
                 ))}
