@@ -19,6 +19,7 @@ import { extractPageContentSafe } from "@/content/utils/extractContent";
 type Message = {
   role: "user" | "assistant";
   content: string;
+  createdAt?: number; // Optional timestamp for when the message was created
 };
 
 type ChatHistoryItem = {
@@ -117,7 +118,8 @@ export default function Sidebar() {
       // Map stored messages to UI messages (skipping system messages if any, or handling timestamps)
       const uiMessages = chat.messages.map(m => ({
           role: m.role as "user" | "assistant", 
-          content: m.content
+          content: m.content,
+          createdAt: m.createdAt
       })).filter(m => m.role !== 'system' as any); // Type assertion to avoid issues if system adds up
       
       setMessages(uiMessages);
@@ -187,7 +189,7 @@ export default function Sidebar() {
     const userQuestion = input;
 
     // Add user message
-    const newMessages = [...messages, { role: "user" as const, content: userQuestion }];
+    const newMessages = [...messages, { role: "user" as const, content: userQuestion, createdAt: Date.now() }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
@@ -263,7 +265,7 @@ export default function Sidebar() {
       console.log("Received response from background script:", response);
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: response || "No response received." }
+        { role: "assistant", content: response || "No response received.", createdAt: Date.now() }
       ]);
       setLoading(false);
     })
@@ -422,8 +424,14 @@ export default function Sidebar() {
                             {msg.content}
                             
                             {/* time like 3:02 PM */}
-                            <div className={cn("text-[10px] opacity-50 text-right mt-1", isDark ? "text-neutral-100" : "text-gray-700")}>
-                                {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <div className={cn("text-[10px] opacity-70 text-right mt-1 w-full", 
+                                msg.role === 'user' 
+                                    ? (isDark ? "text-neutral-500" : "text-gray-400") 
+                                    : (isDark ? "text-neutral-400" : "text-gray-500")
+                            )}>
+                                {msg.createdAt 
+                                    ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                                    : ""}
                             </div>
                         </div>
                     </div>
