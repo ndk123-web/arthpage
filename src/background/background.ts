@@ -1,7 +1,7 @@
 // import { GeminiClient } from "@/lib/llm/GeminiClient";
 
-import { GeminiClient } from "@/lib/llm/GeminiClient";
-import { OllamaClient } from "@/lib/llm/OllamaClient";
+import { GeminiClient } from "@/lib/llm/gemini";
+import { OllamaClient } from "@/lib/llm/ollama";
 import { addMessageInStorage } from "./utils/addMessageInStorage";
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -52,6 +52,9 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
         }, 30000);
       });
 
+      /**
+       * Race against the timeout promise to ensure we don't wait indefinitely for a response from Ollama. If Ollama responds within 30 seconds, we proceed to add the message to storage and send the response back to the Sidebar. If it fails or times out, we catch the error and send an appropriate error message back to the Sidebar.
+       */
       Promise.race([ollamaClient.chat(prompt), timeoutPromise])
         .then((response) => {
           // before sending the response, let's add the message to storage
