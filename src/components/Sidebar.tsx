@@ -60,7 +60,9 @@ export default function Sidebar() {
   const [ollamaUrl, setOllamaUrl] = useState("http://localhost:11434");
   const [currentChatListId, setCurrentChatListId] = useState<string | null>(null); // For future chat list management
 
-  // Effect for Theme
+  /**
+   * This useEffect hook runs once when the component mounts and is responsible for initializing the theme based on user preferences and syncing it across multiple tabs. It first checks if there is a saved theme in localStorage; if not, it falls back to the user's system preference for dark mode. It also sets up an event listener for the "storage" event, which allows it to update the theme in real-time if the user changes it in another tab. This ensures a consistent user experience across all open instances of the extension, as any change to the theme will be reflected immediately without requiring a page refresh.
+   */
   useEffect(() => {
     const savedTheme = localStorage.getItem("extension-theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -106,6 +108,9 @@ export default function Sidebar() {
     fetchChatHistory();
   }, []);
 
+  /**
+    * It helps to maintain user's previous conversation context by loading the chat history from storage whenever the currentChatListId changes. This way, if the user has an active chat list ID (indicating they are in a conversation), we can fetch the corresponding messages from storage and populate the chat interface with that history. If there is no currentChatListId, it simply logs that fact, which can be useful for debugging or understanding user behavior when they start a new conversation without an existing context.
+   */
   useEffect( () => {
     currentChatListId ? console.log("CurrentChatListId Exists",currentChatListId) : console.log("CurrentChatListId is null");
     if (currentChatListId) {
@@ -117,6 +122,9 @@ export default function Sidebar() {
     }
   }, [currentChatListId])
 
+  /**
+   * This function is responsible for fetching the chat history from Chrome's local storage and updating the component's state with that history. It retrieves the "arthpage_chats" item from local storage, which is expected to be an array of chat history items. If such data exists, it sorts the chats by their creation time in descending order (newest first) and then updates the `chatHistory` state with this sorted list. This allows the component to display the user's previous conversations in a structured manner, enabling features like viewing past chats or continuing previous conversations seamlessly.
+   */
   const fetchChatHistory = () => {
     chrome.storage.local.get(["arthpage_chats"], (result) => {
         if (result.arthpage_chats) {
@@ -186,6 +194,9 @@ export default function Sidebar() {
     };
   }, [isResizing, side]);
 
+  /**
+   * Current web pages can have varying background colors which might clash with the sidebar's appearance. By providing a manual toggle for light/dark mode, we allow users to choose the theme that offers the best readability and visual comfort based on their current webpage. This is especially important for users who frequently switch between different types of websites (e.g., a dark-themed dashboard vs. a light-themed news site) and want to maintain a consistent and pleasant user experience with the sidebar regardless of the underlying page design.
+   */
   const toggleTheme = () => {
     const newTheme = !isDark;
     setIsDark(newTheme);
