@@ -1,7 +1,9 @@
 // import { GeminiClient } from "@/lib/llm/GeminiClient";
+import runGemini from "./utils/runGemini";
+import { TimeoutError } from "./utils/error/timeout";
 
-import { GeminiClient } from "@/lib/llm/GeminiClient";
-import { OllamaClient } from "@/lib/llm/OllamaClient";
+// import { GeminiClient } from "@/lib/llm/gemini";
+import { OllamaClient } from "@/lib/llm/ollama";
 import { addMessageInStorage } from "./utils/addMessageInStorage";
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -45,14 +47,20 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
       // what if it fails? We should handle that case as well
       const ollamaClient = new OllamaClient(url, targetModel, "normal");
 
-      // Create a timeout promise that rejects after 30 seconds
-      const timeoutPromise = new Promise<string>((_, reject) => {
-        setTimeout(() => {
-          reject(new Error("Request timed out (30s)"));
-        }, 30000);
-      });
+      // // Create a timeout promise that rejects after 30 seconds
+      // const timeoutPromise = new Promise<string>((_, reject) => {
+      //   setTimeout(() => {
+      //     reject(new Error("Request timed out (30s)"));
+      //   }, 30000);
+      // });
 
-      Promise.race([ollamaClient.chat(prompt), timeoutPromise])
+      /**
+       * Race against the timeout promise to ensure we don't wait indefinitely for a response from Ollama. If Ollama responds within 30 seconds, we proceed to add the message to storage and send the response back to the Sidebar. If it fails or times out, we catch the error and send an appropriate error message back to the Sidebar.
+       */
+      Promise.race([
+        ollamaClient.chat(prompt),
+        TimeoutError.ollamaRequestTimeout(),
+      ])
         .then((response) => {
           // before sending the response, let's add the message to storage
           if (currentChatListId) {
@@ -80,9 +88,56 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
     // Online Mode Handling
     if (activeProvider === "gemini") {
       // Pass the Dynamic Model from Sidebar
-      runGemini(prompt, activeModel).then((response) => {
-        sendResponse({ response });
-      });
+
+      /**
+       * In online mode with Gemini, we also implement a timeout mechanism similar to the offline case. We call the `runGemini` function with the prompt and the dynamically selected model, and
+       */
+      Promise.race([
+        // Pass dynamic model to Gemini function
+        runGemini(prompt, activeModel),
+
+        // Create a timeout promise that rejects after 30 seconds to prevent hanging
+        // new Promise((_, reject) =>
+        //   setTimeout(() => reject(new Error("Request timed out (30s)")), 30000),
+        // ),
+
+        TimeoutError.geminiRequestTimeout(),
+      ])
+        .then((response) => {
+          // before sending the response, let's add the message to storage
+
+          /**
+           * with currentChatListId we are also checking if the response is not an error message about missing API key, 
+           * because if the key is missing we don't want to add that as a message in the chat history. 
+           * We only want to add actual responses from Gemini to the chat history, 
+           * and if the API key is missing, that's more of a configuration error rather than a message that should be part of the conversation history.
+           */
+          if (
+            currentChatListId &&
+            response !==
+              "Error: Gemini API Key is missing. Please set it in Options."
+          ) {
+            addMessageInStorage(
+              actualUserPrompt,
+              response as string,
+              currentChatListId,
+            );
+            console.log(
+              `Added message to storage for chat ID: ${currentChatListId}`,
+            );
+          }
+
+          // here response can be either the Gemini response or a timeout error message, but we send it back to the Sidebar regardless
+          sendResponse({ response });
+        })
+        .catch((error) => {
+          console.error("Gemini request failed or timed out:", error);
+          sendResponse({
+            response:
+              "Error: Server did not respond within 30 seconds or failed.",
+          });
+        });
+
       return true;
     } else if (activeProvider === "openai") {
       runOpenAI(prompt, activeModel).then((response) => {
@@ -117,40 +172,6 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
 });
 
 // --- Provider Implementations ---
-
-async function runGemini(
-  prompt: string,
-  dynamicModel?: string,
-): Promise<string> {
-  return new Promise((resolve) => {
-    // Only get API Key from storage. Use dynamicModel if provided.
-    chrome.storage.sync.get(["gemini"], async (result: any) => {
-      const geminiConfig = result.gemini || {};
-      const geminiApiKey = geminiConfig.apiKey;
-
-      if (!geminiApiKey) {
-        resolve("Error: Gemini API Key is missing. Please set it in Options.");
-        return;
-      }
-
-      try {
-        // Use the model selected in Sidebar, or default to flash
-        const targetModel = dynamicModel || "gemini-1.5-flash-001";
-        console.log(
-          `Initializing Gemini with Key: ${geminiApiKey.substring(0, 5)}... and Model: ${targetModel}`,
-        );
-
-        const geminiClient = new GeminiClient(geminiApiKey.trim(), targetModel);
-
-        const response = await geminiClient.chat(prompt);
-        resolve(response || "No response.");
-      } catch (error: any) {
-        resolve(`Error: Gemini Request Failed. ${error.message || ""}`);
-      }
-    });
-  });
-}
-
 async function runOpenAI(
   prompt: string,
   dynamicModel?: string,

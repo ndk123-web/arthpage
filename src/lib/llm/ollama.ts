@@ -1,4 +1,4 @@
-import type { LLMClient } from "./LLMClient";
+import type { LLMClient } from "./wrapper";
 import { SYSTEM_PROMPT } from "../utils";
 
 type OllamaResponse = {

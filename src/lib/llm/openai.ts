@@ -1,4 +1,4 @@
-import type { LLMClient } from "./LLMClient";
+import type { LLMClient } from "./wrapper";
 
 export class OpenAiClient implements LLMClient {
     

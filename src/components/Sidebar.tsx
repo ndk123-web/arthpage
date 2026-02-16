@@ -19,6 +19,7 @@ import { extractPageContentSafe } from "@/content/utils/extractContent";
 type Message = {
   role: "user" | "assistant";
   content: string;
+  createdAt?: number; // Optional timestamp for when the message was created
 };
 
 type ChatHistoryItem = {
@@ -59,7 +60,9 @@ export default function Sidebar() {
   const [ollamaUrl, setOllamaUrl] = useState("http://localhost:11434");
   const [currentChatListId, setCurrentChatListId] = useState<string | null>(null); // For future chat list management
 
-  // Effect for Theme
+  /**
+   * This useEffect hook runs once when the component mounts and is responsible for initializing the theme based on user preferences and syncing it across multiple tabs. It first checks if there is a saved theme in localStorage; if not, it falls back to the user's system preference for dark mode. It also sets up an event listener for the "storage" event, which allows it to update the theme in real-time if the user changes it in another tab. This ensures a consistent user experience across all open instances of the extension, as any change to the theme will be reflected immediately without requiring a page refresh.
+   */
   useEffect(() => {
     const savedTheme = localStorage.getItem("extension-theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -76,7 +79,7 @@ export default function Sidebar() {
 
   // Sync settings from storage on mount
   useEffect(() => {
-    chrome.storage.sync.get(['currentProvider', 'currentModel', 'provider', 'openai', 'gemini', 'claude', 'deepseek', 'ollama', 'mode'], (result: any) => {
+    chrome.storage.sync.get(['currentProvider', 'currentModel', 'provider', 'openai', 'gemini', 'claude', 'deepseek', 'ollama', 'mode', "currentChatListId"], (result: any) => {
         // Prioritize "currentProvider" if it exists (from Sidebar last session), otherwise fall back to "provider" (from Options)
         if (result.currentProvider) {
             setProvider(result.currentProvider as Provider);
@@ -95,12 +98,33 @@ export default function Sidebar() {
         if (result.mode) {
             setMode(result.mode as Mode);
         } 
+        if (result.currentChatListId) {
+            console.log("Loaded currentChatListId from storage:", result.currentChatListId);
+            setCurrentChatListId(result.currentChatListId);
+        }
     });
     
     // Initial fetch of history
     fetchChatHistory();
   }, []);
 
+  /**
+    * It helps to maintain user's previous conversation context by loading the chat history from storage whenever the currentChatListId changes. This way, if the user has an active chat list ID (indicating they are in a conversation), we can fetch the corresponding messages from storage and populate the chat interface with that history. If there is no currentChatListId, it simply logs that fact, which can be useful for debugging or understanding user behavior when they start a new conversation without an existing context.
+   */
+  useEffect( () => {
+    currentChatListId ? console.log("CurrentChatListId Exists",currentChatListId) : console.log("CurrentChatListId is null");
+    if (currentChatListId) {
+        chatHistory.map((chat, _) => {
+            if (chat.id === currentChatListId) {
+                setMessages(chat.messages)
+            }
+        })
+    }
+  }, [currentChatListId])
+
+  /**
+   * This function is responsible for fetching the chat history from Chrome's local storage and updating the component's state with that history. It retrieves the "arthpage_chats" item from local storage, which is expected to be an array of chat history items. If such data exists, it sorts the chats by their creation time in descending order (newest first) and then updates the `chatHistory` state with this sorted list. This allows the component to display the user's previous conversations in a structured manner, enabling features like viewing past chats or continuing previous conversations seamlessly.
+   */
   const fetchChatHistory = () => {
     chrome.storage.local.get(["arthpage_chats"], (result) => {
         if (result.arthpage_chats) {
@@ -117,7 +141,8 @@ export default function Sidebar() {
       // Map stored messages to UI messages (skipping system messages if any, or handling timestamps)
       const uiMessages = chat.messages.map(m => ({
           role: m.role as "user" | "assistant", 
-          content: m.content
+          content: m.content,
+          createdAt: m.createdAt
       })).filter(m => m.role !== 'system' as any); // Type assertion to avoid issues if system adds up
       
       setMessages(uiMessages);
@@ -169,6 +194,9 @@ export default function Sidebar() {
     };
   }, [isResizing, side]);
 
+  /**
+   * Current web pages can have varying background colors which might clash with the sidebar's appearance. By providing a manual toggle for light/dark mode, we allow users to choose the theme that offers the best readability and visual comfort based on their current webpage. This is especially important for users who frequently switch between different types of websites (e.g., a dark-themed dashboard vs. a light-themed news site) and want to maintain a consistent and pleasant user experience with the sidebar regardless of the underlying page design.
+   */
   const toggleTheme = () => {
     const newTheme = !isDark;
     setIsDark(newTheme);
@@ -187,7 +215,7 @@ export default function Sidebar() {
     const userQuestion = input;
 
     // Add user message
-    const newMessages = [...messages, { role: "user" as const, content: userQuestion }];
+    const newMessages = [...messages, { role: "user" as const, content: userQuestion, createdAt: Date.now() }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
@@ -263,7 +291,7 @@ export default function Sidebar() {
       console.log("Received response from background script:", response);
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: response || "No response received." }
+        { role: "assistant", content: response || "No response received.", createdAt: Date.now() }
       ]);
       setLoading(false);
     })
@@ -422,8 +450,14 @@ export default function Sidebar() {
                             {msg.content}
                             
                             {/* time like 3:02 PM */}
-                            <div className={cn("text-[10px] opacity-50 text-right mt-1", isDark ? "text-neutral-100" : "text-gray-700")}>
-                                {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <div className={cn("text-[10px] opacity-70 text-right mt-1 w-full", 
+                                msg.role === 'user' 
+                                    ? (isDark ? "text-neutral-500" : "text-gray-400") 
+                                    : (isDark ? "text-neutral-400" : "text-gray-500")
+                            )}>
+                                {msg.createdAt 
+                                    ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                                    : ""}
                             </div>
                         </div>
                     </div>
