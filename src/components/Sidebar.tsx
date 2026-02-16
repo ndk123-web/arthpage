@@ -77,7 +77,7 @@ export default function Sidebar() {
 
   // Sync settings from storage on mount
   useEffect(() => {
-    chrome.storage.sync.get(['currentProvider', 'currentModel', 'provider', 'openai', 'gemini', 'claude', 'deepseek', 'ollama', 'mode'], (result: any) => {
+    chrome.storage.sync.get(['currentProvider', 'currentModel', 'provider', 'openai', 'gemini', 'claude', 'deepseek', 'ollama', 'mode', "currentChatListId"], (result: any) => {
         // Prioritize "currentProvider" if it exists (from Sidebar last session), otherwise fall back to "provider" (from Options)
         if (result.currentProvider) {
             setProvider(result.currentProvider as Provider);
@@ -96,11 +96,26 @@ export default function Sidebar() {
         if (result.mode) {
             setMode(result.mode as Mode);
         } 
+        if (result.currentChatListId) {
+            console.log("Loaded currentChatListId from storage:", result.currentChatListId);
+            setCurrentChatListId(result.currentChatListId);
+        }
     });
     
     // Initial fetch of history
     fetchChatHistory();
   }, []);
+
+  useEffect( () => {
+    currentChatListId ? console.log("CurrentChatListId Exists",currentChatListId) : console.log("CurrentChatListId is null");
+    if (currentChatListId) {
+        chatHistory.map((chat, _) => {
+            if (chat.id === currentChatListId) {
+                setMessages(chat.messages)
+            }
+        })
+    }
+  }, [currentChatListId])
 
   const fetchChatHistory = () => {
     chrome.storage.local.get(["arthpage_chats"], (result) => {
