@@ -83,9 +83,40 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
     // Online Mode Handling
     if (activeProvider === "gemini") {
       // Pass the Dynamic Model from Sidebar
-      runGemini(prompt, activeModel).then((response) => {
-        sendResponse({ response });
-      });
+
+      Promise.race([
+        // Pass dynamic model to Gemini function
+        runGemini(prompt, activeModel),
+
+        // Create a timeout promise that rejects after 30 seconds to prevent hanging
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Request timed out (30s)")), 30000),
+        ),
+      ])
+        .then((response) => {
+          // before sending the response, let's add the message to storage
+          if (currentChatListId) {
+            addMessageInStorage(
+              actualUserPrompt,
+              response as string,
+              currentChatListId,
+            );
+            console.log(
+              `Added message to storage for chat ID: ${currentChatListId}`,
+            );
+          }
+
+          // here response can be either the Gemini response or a timeout error message, but we send it back to the Sidebar regardless
+          sendResponse({ response });
+        })
+        .catch((error) => {
+          console.error("Gemini request failed or timed out:", error);
+          sendResponse({
+            response:
+              "Error: Server did not respond within 30 seconds or failed.",
+          });
+        });
+
       return true;
     } else if (activeProvider === "openai") {
       runOpenAI(prompt, activeModel).then((response) => {
