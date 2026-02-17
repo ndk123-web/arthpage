@@ -1,5 +1,7 @@
 import { GeminiClient } from "@/lib/llm/gemini";
 
+// --- Provider Implementations ---
+
 async function runGemini(
   prompt: string,
   dynamicModel?: string,

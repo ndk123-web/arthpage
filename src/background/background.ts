@@ -1,5 +1,6 @@
 // import { GeminiClient } from "@/lib/llm/GeminiClient";
 import runGemini from "./utils/runGemini";
+import runOpenAI from "./utils/runOpenai";
 import { TimeoutError } from "./utils/error/timeout";
 
 // import { GeminiClient } from "@/lib/llm/gemini";
@@ -85,7 +86,7 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
       return true;
     }
 
-    // Online Mode Handling
+    // For Gemini and OpenAI in online mode, we also want to implement a timeout mechanism to ensure that if the server does not respond within a reasonable time frame (e.g., 30 seconds), we handle it gracefully and inform the user through the Sidebar. This prevents the extension from hanging indefinitely while waiting for a response from the API.
     if (activeProvider === "gemini") {
       // Pass the Dynamic Model from Sidebar
 
@@ -107,9 +108,9 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
           // before sending the response, let's add the message to storage
 
           /**
-           * with currentChatListId we are also checking if the response is not an error message about missing API key, 
-           * because if the key is missing we don't want to add that as a message in the chat history. 
-           * We only want to add actual responses from Gemini to the chat history, 
+           * with currentChatListId we are also checking if the response is not an error message about missing API key,
+           * because if the key is missing we don't want to add that as a message in the chat history.
+           * We only want to add actual responses from Gemini to the chat history,
            * and if the API key is missing, that's more of a configuration error rather than a message that should be part of the conversation history.
            */
           if (
@@ -139,10 +140,43 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
         });
 
       return true;
-    } else if (activeProvider === "openai") {
-      runOpenAI(prompt, activeModel).then((response) => {
-        sendResponse({ response });
-      });
+    }
+
+    // For OpenAI, we implement the same timeout mechanism to ensure that if OpenAI does not respond within 30 seconds, we handle it gracefully and inform the user through the Sidebar.
+    else if (activeProvider === "openai") {
+      Promise.race([
+        // Pass dynamic model to OpenAI function
+        runOpenAI(prompt, activeModel),
+
+        // Create a timeout promise that rejects after 30 seconds to prevent hanging
+        TimeoutError.openaiRequestTimeout(),
+      ])
+        .then((response) => {
+          if (
+            currentChatListId &&
+            response !== "Error: OpenAI API Key is missing."
+          ) {
+            addMessageInStorage(
+              actualUserPrompt,
+              response as string,
+              currentChatListId,
+            );
+            console.log(
+              `Added message to storage for chat ID: ${currentChatListId}`,
+            );
+
+            // Send the response back to the sender (Sidebar)
+            sendResponse({ response });
+          }
+        })
+        .catch((error) => {
+          console.error("OpenAI request failed or timed out:", error);
+          sendResponse({
+            response:
+              "Error: Server did not respond within 30 seconds or failed.",
+          });
+        });
+
       return true;
     } else {
       sendResponse({
@@ -170,25 +204,3 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
 
   return true;
 });
-
-// --- Provider Implementations ---
-async function runOpenAI(
-  prompt: string,
-  dynamicModel?: string,
-): Promise<string> {
-  return new Promise((resolve) => {
-    chrome.storage.sync.get(["openai"], async (result: any) => {
-      const openaiConfig = result.openai || {};
-      const openaiApiKey = openaiConfig.apiKey;
-
-      if (!openaiApiKey) {
-        resolve("Error: OpenAI API Key is missing.");
-        return;
-      }
-      // Mock OpenAI Call for now (Client needs implementing)
-      resolve(
-        `[Mock OpenAI] Response using model: ${dynamicModel || "default"} (Prompt: ${prompt.substring(0, 20)}...)`,
-      );
-    });
-  });
-}
