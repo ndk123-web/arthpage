@@ -57,13 +57,20 @@ export class OpenAiClient implements LLMClient {
   }
 
   async chat(prompt: string): Promise<string> {
-    console.log(
-      "Using model:",
-      this.model,
-      "with API key length:",
-      this.apiKey.length,
-    );
-    // fetch response from OpenAI API
-    return "This is a mock response from OpenAI API for prompt: " + prompt;
+    try {
+      const response = await this.main(prompt);
+      console.log(
+        "Using model:",
+        this.model,
+        "with API key length:",
+        this.apiKey.length,
+      );
+
+      console.log("OpenAI response:", response);
+      return response;
+    } catch (error: any) {
+      console.error("Error in OpenAiClient chat method:", error);
+      return `Error: ${error.message || "Failed to get response from OpenAI API"}`;
+    }
   }
 }
