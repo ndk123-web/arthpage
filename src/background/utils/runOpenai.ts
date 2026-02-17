@@ -5,7 +5,7 @@ async function runOpenAI(
   prompt: string,
   dynamicModel?: string,
 ): Promise<string> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     chrome.storage.sync.get(["openai"], async (result: any) => {
       const openaiConfig = result.openai || {};
       const openaiApiKey = openaiConfig.apiKey;
@@ -26,7 +26,7 @@ async function runOpenAI(
         const response = await openAiClient.chat(prompt);
         return response;
       } catch (error: any) {
-        resolve(`Error: OpenAI Request Failed. ${error.message || ""}`);
+        reject(`Error: OpenAI Request Failed. ${error.message || ""}`);
       }
     });
   });

@@ -6,7 +6,7 @@ async function runGemini(
   prompt: string,
   dynamicModel?: string,
 ): Promise<string> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     // Only get API Key from storage. Use dynamicModel if provided.
     chrome.storage.sync.get(["gemini"], async (result: any) => {
       const geminiConfig = result.gemini || {};
@@ -29,7 +29,7 @@ async function runGemini(
         const response = await geminiClient.chat(prompt);
         resolve(response || "No response.");
       } catch (error: any) {
-        resolve(`Error: Gemini Request Failed. ${error.message || ""}`);
+        reject(`Error: Gemini Request Failed. ${error.message || ""}`);
       }
     });
   });
