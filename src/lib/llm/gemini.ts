@@ -80,6 +80,7 @@ export class GeminiClient implements LLMClient {
     }
   }
 
+  // i will build this feature afterwards, for now we can just use the main chat method for both
   async historyChat(prompt: string): Promise<string> {
     // For Gemini, we can use the same chat method since it can handle context in the prompt
     return (
