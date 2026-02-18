@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Web Summarizer",
+  "name": "ArthPage",
   "version": "0.1.0",
   "icons": {
         "16": "icons/arthpage-opt.png",

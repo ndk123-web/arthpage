@@ -71,7 +71,7 @@ By default, Ollama restricts API access to same-origin requests. You need to set
 Run the following command to set the environment variable persistently:
 
 ```powershell
-setx OLLAMA_ORIGINS "*"
+[Environment]::SetEnvironmentVariable("OLLAMA_ORIGINS", "*", "User")
 ```
 
 After running this command, **restart your computer** or restart the Ollama application from the taskbar for changes to take effect.

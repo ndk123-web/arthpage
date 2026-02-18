@@ -1,4 +1,3 @@
-
 <div align="center">
   <img src="public/icons/arthpage-opt.png" alt="ArthPage Logo" width="100" height="100" style="border-radius: 50%;">
 </div>
@@ -6,7 +5,18 @@
  <h1 align="center">ArthPage</h1>
 </p>
 
-**ArthPage** integrates a contextual AI sidebar heavily optimized for research and reading. It allows users to interact with webpage content using various Large Language Models (LLMs) including OpenAI, Gemini, Claude, DeepSeek, and local Ollama instances.
+**ArthPage** is a sophisticated browser extension designed to integrate a contextual AI sidebar heavily optimized for research and reading. It allows users to interact with webpage content using various Large Language Models (LLMs) including OpenAI, Gemini, Claude, DeepSeek, and local Ollama instances.
+
+## 📑 Table of Contents
+- [Features](#features)
+- [Installation](#installation)
+- [Setup Guide](#setup-guide)
+  - [Online Models (Cloud)](#online-models-cloud)
+  - [Offline Models (Ollama)](#offline-models-ollama)
+- [Documentation](#documentation)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [License](#license)
 
 ## Features
 
@@ -42,13 +52,66 @@
     ```
 4.  Load the `dist` folder in `chrome://extensions` as an unpacked extension.
 
+## Setup Guide
+
+### Online Models (Cloud)
+
+To use cloud-based models like **OpenAI, Gemini, Claude, or DeepSeek**:
+
+1.  Open the ArthPage sidebar on any webpage.
+2.  Click the **Settings** (gear icon) in the sidebar.
+3.  Select your desired provider from the list.
+4.  Enter your valid **API Key** in the input field.
+5.  The extension is now ready to generate summaries and chat using the cloud provider.
+
+### Offline Models (Ollama)
+
+To use local, privacy-focused models without an internet connection, follow these specific steps to configure **Ollama**:
+
+#### 1. Download & Install
+Download and install Ollama from [ollama.com](https://ollama.com).
+
+#### 2. Pull a Model
+Open your terminal or command prompt and pull a lightweight model (e.g., DeepSeek or Llama 3) to get started:
+```bash
+ollama pull deepseek-r1:1.5b
+```
+
+#### 3. Configure CORS (Crucial Step)
+By default, Ollama blocks requests from browser extensions. You must set the `OLLAMA_ORIGINS` environment variable to allow the extension to communicate with Ollama.
+
+**For Windows (PowerShell):**
+1.  Close Ollama from the taskbar (system tray) if it is running.
+2.  Open PowerShell and run the following command found in the documentation:
+    ```powershell
+    [Environment]::SetEnvironmentVariable("OLLAMA_ORIGINS", "*", "User")
+    ```
+3.  **Restart your computer** or strictly restart the Ollama application.
+
+**For Mac/Linux:**
+```bash
+OLLAMA_ORIGINS="*" ollama serve
+```
+
+#### 4. Start the Server
+Once configured, ensure the Ollama server is running:
+```bash
+ollama serve
+```
+
+#### 5. Connect ArthPage
+1.  Open the ArthPage sidebar.
+2.  Go to **Settings** and select **Ollama** as the provider.
+3.  Ensure the URL is set to `http://localhost:11434` (default).
+4.  Select your pulled model (e.g., `deepseek-r1:1.5b`) from the dropdown.
+
 ## Documentation
 
 Detailed documentation is available in the `docs` directory:
 
-- [**Developer Guide**](docs/developer-guide.md): Setup, build processes, and Ollama configuration.
+- [**Developer Guide**](docs/developer-guide.md): Advanced setup and build processes.
 - [**Architecture**](docs/architecture.md): System design, message passing, and component isolation.
-- [**Providers**](docs/providers.md): supported LLMs and integration details.
+- [**Providers**](docs/providers.md): Supported LLMs and integration details.
 - [**Contributing**](docs/contributing.md): Guidelines for code contributions.
 
 ## Tech Stack

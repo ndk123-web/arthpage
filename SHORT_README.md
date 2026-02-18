@@ -1,6 +1,6 @@
-## 🚀 Web Summarizer Chrome Extension
+## 🚀 ArthPage
 
-A modern Chrome Extension built with **Vite + React + CRXJS** to demonstrate the internal architecture of browser extensions and inter-component communication.
+**ArthPage** is a modern Chrome Extension built with **Vite + React + CRXJS** designed to demonstrate the internal architecture of browser extensions and inter-component communication.
 
 ### 🏗️ Architecture & Process Isolation
 
@@ -8,7 +8,7 @@ Browser extensions operate in isolated environments. This project showcases how 
 
 1. **Popup (UI Layer)**
 
-- **Environment:** Separate process (janam leta hai only on click).
+- **Environment:** Separate process (instantiated only on click).
 - **Role:** User interface for interaction.
 - **Constraint:** Cannot access the webpage DOM directly; relies on message passing.
 
@@ -28,11 +28,11 @@ Browser extensions operate in isolated environments. This project showcases how 
 
 ### 🛠️ Why CRXJS + Vite?
 
-Standard extension development can be clunky. **CRXJS** simplifies this by:
+Standard extension development can be cumbersome. **CRXJS** simplifies this by:
 
-- **HMR (Hot Module Replacement):** Popup aur Content scripts me changes karte hi browser auto-reload ho jata hai.
-- **Vite Integration:** Modern tooling (ES Modules, TypeScript, Fast Bundling) use karne deta hai.
-- **Unified Manifest:** `manifest.json` ko source code ka hissa bana deta hai, jisse assets handle karna easy hota hai.
+- **HMR (Hot Module Replacement):** Instant browser auto-reload upon changing Popup or Content scripts.
+- **Vite Integration:** Enables modern tooling (ES Modules, TypeScript, Fast Bundling).
+- **Unified Manifest:** Treats `manifest.json` as part of the source code, easing asset management.
 
 ### 📂 Build & Deployment
 
@@ -48,16 +48,16 @@ Standard extension development can be clunky. **CRXJS** simplifies this by:
 - **Content Script** ➔ responds with ➔ **Scraped Text**.
 - **Popup** ➔ sends text to ➔ **Background Script** (for API processing).
 
-### Where to Where Call is Going
+### Communication Channels
 
-1. chrome.runtime.sendMessage
+1. `chrome.runtime.sendMessage`
    - From Content Script / Popup to Background Script
 
    ```js
    chrome.runtime.sendMessage({ type: string }, (response) => {});
    ```
 
-2. chrome.tabs.sendMessage
+2. `chrome.tabs.sendMessage`
    - From Popup to Content Script
 
    ```js
