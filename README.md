@@ -1,65 +1,83 @@
-## 🚀 Web Summarizer Chrome Extension
+# ArthPage
 
-A modern Chrome Extension built with **Vite + React + CRXJS** to demonstrate the internal architecture of browser extensions and inter-component communication.
-
-### 🏗️ Architecture & Process Isolation
-
-Browser extensions operate in isolated environments. This project showcases how these "islands" interact:
-
-1. **Popup (UI Layer)**
-
-- **Environment:** Separate process (janam leta hai only on click).
-- **Role:** User interface for interaction.
-- **Constraint:** Cannot access the webpage DOM directly; relies on message passing.
-
-2. **Content Script (The Bridge)**
-
-- **Environment:** Injected directly into the Web Page DOM.
-- **Role:** Reads, scrapes, or modifies the current page content.
-- **Context:** Runs in the context of the website you are visiting.
-
-3. **Background Service Worker (The Orchestrator)**
-
-- **Environment:** Independent background process.
-- **Role:** Handles long-running tasks, storage, and API calls (e.g., Summarization AI).
-- **Nature:** Event-based; stays idle when not in use to save resources.
+<div align="center">
+  <img src="public/icons/arthpage-opt.png" alt="ArthPage Logo" width="100" height="100" style="border-radius: 50%;">
+  <p><em>An AI-powered browser sidekick for summarizing, analyzing, and chatting with web content.</em></p>
+</div>
 
 ---
 
-### 🛠️ Why CRXJS + Vite?
+**ArthPage** integrates a contextual AI sidebar heavily optimized for research and reading. It allows users to interact with webpage content using various Large Language Models (LLMs) including OpenAI, Gemini, Claude, DeepSeek, and local Ollama instances.
 
-Standard extension development can be clunky. **CRXJS** simplifies this by:
+## Features
 
-- **HMR (Hot Module Replacement):** Popup aur Content scripts me changes karte hi browser auto-reload ho jata hai.
-- **Vite Integration:** Modern tooling (ES Modules, TypeScript, Fast Bundling) use karne deta hai.
-- **Unified Manifest:** `manifest.json` ko source code ka hissa bana deta hai, jisse assets handle karna easy hota hai.
+- **Context-Aware Chat**: Ask questions directly related to the current webpage.
+- **Model Flexibility**: Switch between cloud providers (OpenAI, Gemini, Anthropic) and local privacy-focused models (Ollama).
+- **Isolated UI**: Built with Shadow DOM to ensure styles do not bleed into or from the host webpage.
+- **Persistent Settings**: Syncs preferences and API configurations across browser sessions.
+- **Privacy-First**: API keys are stored in local storage and never transmitted to intermediate servers.
 
-### 📂 Build & Deployment
+## Installation
 
-1. **Development:** `npm run dev` starts the Vite server with HMR.
-2. **Production:** `npm run build` bundles everything into the `dist/` folder.
-3. **Loading:** Open `chrome://extensions`, enable **Developer Mode**, and click **"Load unpacked"** pointing to the `dist/` directory.
+### For Users
 
----
+1.  Download the latest release from the **Releases** section.
+2.  Extract the archive to a local folder.
+3.  Open your browser (Chrome/Brave/Edge) and navigate to `chrome://extensions`.
+4.  Enable **Developer Mode** in the top right.
+5.  Click **Load unpacked** and select the `dist` folder from the extracted archive.
 
-### 📡 Communication Flow (How it works)
+### For Developers
 
-- **Popup** ➔ sends message to ➔ **Content Script** (to get page text).
-- **Content Script** ➔ responds with ➔ **Scraped Text**.
-- **Popup** ➔ sends text to ➔ **Background Script** (for API processing).
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/Start-Up-code/First-Web-Extension.git
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Start the development server with Hot Module Replacement (HMR):
+    ```bash
+    npm run dev
+    ```
+4.  Load the `dist` folder in `chrome://extensions` as an unpacked extension.
 
-### Where to Where Call is Going
+## Documentation
 
-1. chrome.runtime.sendMessage
-   - From Content Script / Popup to Background Script
+Detailed documentation is available in the `docs` directory:
 
-   ```js
-   chrome.runtime.sendMessage({ type: string }, (response) => {});
-   ```
+- [**Developer Guide**](docs/developer-guide.md): Setup, build processes, and Ollama configuration.
+- [**Architecture**](docs/architecture.md): System design, message passing, and component isolation.
+- [**Providers**](docs/providers.md): supported LLMs and integration details.
+- [**Contributing**](docs/contributing.md): Guidelines for code contributions.
 
-2. chrome.tabs.sendMessage
-   - From Popup to Content Script
+## Tech Stack
 
-   ```js
-   chrome.tabs.sendMessage(tabId, { type: string }, (response) => {});
-   ```
+- **Framework**: React 18
+- **Language**: TypeScript
+- **Build Tool**: Vite + CRXJS
+- **Styling**: Tailwind CSS (Shadow DOM compatible)
+- **State Management**: React Hooks + Chrome Storage API
+
+## Project Structure
+
+```text
+First-Web-Extension/
+├── public/           # Static assets
+├── src/
+│   ├── background/   # Service workers (API handling)
+│   ├── components/   # React UI components
+│   ├── content/      # Injected scripts (Shadow DOM host)
+│   ├── lib/          # Utilities and LLM clients
+│   ├── options/      # Options page
+│   ├── popup/        # Extension popup
+│   └── manifest.json # Manifest V3 configuration
+└── vite.config.ts    # Build configuration
+```
+
+## License
+
+MIT
+
+
