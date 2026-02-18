@@ -1,7 +1,8 @@
 {
-  "name": "web-page-explainer",
+  "name": "arthapage",
   "private": true,
-  "version": "0.0.0",
+  "description": "A sophisticated AI sidebar optimized for research and reading.",
+  "version": "0.1.0",
   "license": "MIT",
   "type": "module",
   "scripts": {

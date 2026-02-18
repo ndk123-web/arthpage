@@ -1,6 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "ArthPage",
+  "name": "ArthaPage",
+  "description": "A sophisticated AI sidebar optimized for research and reading. Chat with any webpage using OpenAI, Gemini, Claude, or Ollama.",
   "version": "0.1.0",
   "icons": {
         "16": "icons/arthpage-opt.png",
