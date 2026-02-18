@@ -54,6 +54,7 @@ export class DeepSeekClient implements LLMClient {
   async chat(prompt: string): Promise<string> {
     try {
       const response = await this.main(prompt);
+      
       console.log("DeepSeek response:", response);
       return response;
     } catch (error: any) {
