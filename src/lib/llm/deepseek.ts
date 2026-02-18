@@ -11,7 +11,7 @@ export class DeepSeekClient implements LLMClient {
 
   async main(prompt: string): Promise<string> {
     try {
-      const url = `https://api.deepseek.com/v1/chat/completions`;
+      const url = `https://api.deepseek.com/chat/completions`;
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -27,6 +27,7 @@ export class DeepSeekClient implements LLMClient {
             },
           ],
           temperature: 0.7,
+          stream: false,
         }),
       });
 

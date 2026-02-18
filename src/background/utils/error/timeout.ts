@@ -22,4 +22,12 @@ export class TimeoutError {
       }, 30000);
     });
   }
+
+  static async deepseekRequestTimeout(): Promise<string> {
+    return new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error("DeepSeek Request timed out (30s)"));
+      }, 30000);
+    });
+  }
 }

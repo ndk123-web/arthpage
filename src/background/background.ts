@@ -1,6 +1,7 @@
 // import { GeminiClient } from "@/lib/llm/GeminiClient";
 import runGemini from "./utils/runGemini";
 import runOpenAI from "./utils/runOpenai";
+import runDeepSeek from "./utils/runDeepseek";
 import { TimeoutError } from "./utils/error/timeout";
 
 // import { GeminiClient } from "@/lib/llm/gemini";
@@ -178,6 +179,38 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
         });
 
       return true;
+    } else if (activeProvider === "deepseek") {
+      Promise.race([
+        // Pass dynamic model to DeepSeek function
+        runDeepSeek(prompt, activeModel),
+
+        // Create a timeout promise that rejects after 30 seconds to prevent hanging
+        TimeoutError.deepseekRequestTimeout(),
+      ])
+        .then((response) => {
+          if (
+            currentChatListId &&
+            !response.startsWith("Error: DeepSeek API Key is missing")
+          ) {
+            addMessageInStorage(
+              actualUserPrompt,
+              response as string,
+              currentChatListId,
+            );
+            console.log(
+              `Added message to storage for chat ID: ${currentChatListId}`,
+            );
+            // Send the response back to the sender (Sidebar)
+            sendResponse({ response });
+          }
+        })
+        .catch((error) => {
+          console.error("DeepSeek request failed or timed out:", error);
+          sendResponse({
+            response:
+              `Error: Server did not respond within 30 seconds or failed. ${error.message || ""}`,
+          });
+        });
     } else {
       sendResponse({
         response: `Provider ${activeProvider} is not configured in background.`,

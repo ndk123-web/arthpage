@@ -100,7 +100,7 @@ function Options() {
         ollama: settings.providers.ollama,
     }, () => {
         setStatus("Settings saved successfully!")
-        setTimeout(() => setStatus(""), 3000)
+        setTimeout(() => setStatus(""), 5000)
     })
   }
 
