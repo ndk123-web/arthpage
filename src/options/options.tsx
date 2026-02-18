@@ -133,9 +133,14 @@ function Options() {
         <div className={`w-full max-w-2xl rounded-xl border shadow-lg overflow-hidden h-fit ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
             {/* Header */}
             <div className={`p-6 border-b flex justify-between items-center ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
-                <div>
-                    <h1 className="text-2xl font-bold">Extension Settings</h1>
-                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Configure your AI providers</p>
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border dark:border-neutral-700 shadow-sm shrink-0">
+                        <img src="/icons/arthpage-opt.png" alt="ArthPage" className="w-full h-full object-cover" />
+                    </div>
+                     <div>
+                        <h1 className="text-xl font-bold font-sans">ArthPage</h1>
+                        <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Customize your web experience</p>
+                    </div>
                 </div>
                 <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
                     {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}

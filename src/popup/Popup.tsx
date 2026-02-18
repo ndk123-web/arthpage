@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react"
 import { Button } from "../components/ui/button"
-import { Zap, Sidebar, Moon, Sun, Settings } from "lucide-react"
+import { Sidebar, Moon, Sun, Settings } from "lucide-react"
 import '../index.css'
 
 export default function Popup() {
-  const [text, setText] = useState("")
-  const [loading, setLoading] = useState(false)
   const [sidebarStatus, setSidebarStatus] = useState(false)
   const [isDark, setIsDark] = useState(false)
 
@@ -56,7 +54,7 @@ export default function Popup() {
     // setSidebarStatus(newStatus) -> better to wait for callback but for responsiveness:
   }
 
-  const getPageText = async () => {
+/*   const getPageText = async () => {
     setLoading(true)
 
     try {
@@ -84,7 +82,7 @@ export default function Popup() {
       setText("Error extracting page text")
       setLoading(false)
     }
-  }
+  } */
 
   const injectSidebar = async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
@@ -130,10 +128,10 @@ export default function Popup() {
       <div className={`p-5 flex items-center justify-between border-b ${isDark ? 'border-neutral-800 bg-black' : 'border-gray-200 bg-white'} rounded-t-lg`}>
         <div className="flex items-center gap-2">
           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark ? 'bg-white text-black' : 'bg-black text-white'}`}>
-            <Zap className="w-5 h-5 fill-current" />
+            <img src="/icons/arthpage-opt.png" alt="ArthPage Icon" />
           </div>
           <div>
-            <h1 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-black'}`}>Web Summarizer</h1>
+            <h1 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-black'}`}>ArthPage</h1>
             <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>AI-powered extraction</p>
           </div>
         </div>
@@ -153,6 +151,7 @@ export default function Popup() {
       </div>
 
       {/* Content Area */}
+      {/* 
       <div className="p-5 space-y-4">
         {text ? (
           <div className="space-y-3">
@@ -168,11 +167,13 @@ export default function Popup() {
             <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Extract text to view summary</p>
           </div>
         )}
-      </div>
+      </div> 
+      */}
 
       {/* Button Area */}
-      <div className={`p-5 pt-0 space-y-3`}>
+      <div className={`p-5 space-y-3`}>
         {/* Extract Text Button */}
+        {/*
         <Button
           onClick={getPageText}
           disabled={loading}
@@ -193,6 +194,7 @@ export default function Popup() {
             </>
           )}
         </Button>
+        */}
 
         {/* Sidebar Button */}
         <Button 
