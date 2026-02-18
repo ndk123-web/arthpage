@@ -1,6 +1,6 @@
 # Contributing
 
-We welcome contributions to ArthPage! This document outlines the process for submitting improvements and bug fixes.
+We welcome contributions to ArthaPage! This document outlines the process for submitting improvements and bug fixes.
 
 ## Development Workflow
 

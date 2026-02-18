@@ -1,6 +1,6 @@
 # Integration
 
-ArthPage supports a modular provider system, enabling seamless integration with both cloud-based and local Large Language Models (LLMs).
+ArthaPage supports a modular provider system, enabling seamless integration with both cloud-based and local Large Language Models (LLMs).
 
 ## Supported Providers
 

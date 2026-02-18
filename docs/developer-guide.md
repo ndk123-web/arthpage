@@ -1,6 +1,6 @@
 # Developer Guide
 
-This guide details the setup process for developing and contributing to ArthPage. It covers installation, environment configuration, and local model setup (Ollama).
+This guide details the setup process for developing and contributing to ArthaPage. It covers installation, environment configuration, and local model setup (Ollama).
 
 ## Prerequisites
 
@@ -91,7 +91,7 @@ For a permanent macOS service configuration:
 ### Step 3: Verify Connection
 
 1.  Ensure Ollama is running (`ollama serve`).
-2.  Open the ArthPage extension sidebar.
+2.  Open the ArthaPage extension sidebar.
 3.  Select **Mode: Local (Ollama)**.
 4.  Enter `http://localhost:11434` (default) as the URL.
 5.  Available models should now populate the dropdown.
