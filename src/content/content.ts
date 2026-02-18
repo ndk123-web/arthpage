@@ -76,5 +76,21 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
     return true; // Keep channel open for async response
   }
 
+  if (msg.type === "REMOVE_SIDEBAR") {
+    console.log("Removing sidebar...");
+    
+    // Dynamically import the sidebar module and unmount it from the page
+    import("./sidebar.tsx")
+      .then(({ removeSidebar }) => {
+        removeSidebar();
+        sendResponse({ status: "SIDEBAR_REMOVED" });
+      })
+      .catch((error) => {
+        console.error("Error removing sidebar:", error);
+        sendResponse({ status: "SIDEBAR_REMOVAL_FAILED", error: error.message });
+      });
+    return true;
+  }
+
   return true; // Keep the channel open for async response
 });

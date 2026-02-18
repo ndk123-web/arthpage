@@ -32,3 +32,12 @@ export function mountSidebar() {
 
   console.log("Sidebar mounted successfully");
 }
+
+// Function to unmount/remove the sidebar
+export function removeSidebar() {
+  const existingRoot = document.getElementById("my-extension-sidebar-root");
+  if (existingRoot) {
+    existingRoot.remove();
+    console.log("Sidebar removed successfully");
+  }
+}

@@ -9,17 +9,51 @@ export default function Popup() {
   const [sidebarStatus, setSidebarStatus] = useState(false)
   const [isDark, setIsDark] = useState(false)
 
+
   useEffect(() => {
     // Check system preference or saved preference
     const savedTheme = localStorage.getItem("extension-theme")
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
     setIsDark(savedTheme ? savedTheme === "dark" : prefersDark)
+
+
+    const savedSidebarStatus = localStorage.getItem("sidebar-status")
+    setSidebarStatus(savedSidebarStatus === "open")
   }, [])
 
   const toggleTheme = () => {
     const newTheme = !isDark
     setIsDark(newTheme)
     localStorage.setItem("extension-theme", newTheme ? "dark" : "light")
+  }
+
+  const removeSidebar = async () => {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+      if (tab?.id) {
+        chrome.tabs.sendMessage(tab.id, { type: "REMOVE_SIDEBAR" }, (response) => {
+           console.log("Sidebar removal response:", response)
+           if (response && response.status === "SIDEBAR_REMOVED") {
+             setSidebarStatus(false)
+             localStorage.setItem("sidebar-status", "closed")
+           }
+        })
+      }
+    } catch (error) {
+      console.error("Error removing sidebar:", error)
+    }
+  }
+
+  const toggleSidebarStatus = () => {
+    const newStatus = !sidebarStatus
+    if (newStatus) {
+      injectSidebar()
+    } else {
+      removeSidebar()
+    }
+    // State update is handled in inject/remove functions or below
+    // But for immediate UI feedback we can toggle:
+    // setSidebarStatus(newStatus) -> better to wait for callback but for responsiveness:
   }
 
   const getPageText = async () => {
@@ -53,7 +87,6 @@ export default function Popup() {
   }
 
   const injectSidebar = async () => {
-    setSidebarStatus(true)
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
 
     if (tab.id) {
@@ -61,27 +94,27 @@ export default function Popup() {
         chrome.tabs.sendMessage(tab.id, {type : "INJECT_SIDEBAR"}, (response) => {
           console.log("Sidebar injection response:", response)
           if (response && response.status === "SIDEBAR_INJECTED") {
-            // setSidebarStatus("✓ Sidebar Active")
-            // setTimeout(() => setSidebarStatus(""), 2000)
+             setSidebarStatus(true)
+             localStorage.setItem("sidebar-status", "open")
           }
           else {
-            // setSidebarStatus("Failed to inject")
-            // setTimeout(() => setSidebarStatus(""), 2000)
-            confirm("Failed to inject sidebar: " + (response?.error || "Unknown error"))
+            // Check specifically for "Receiving end does not exist" which means content script isn't ready/reloaded
+            if (chrome.runtime.lastError) {
+                 console.error("Runtime error:", chrome.runtime.lastError);
+            }
+            // confirm("Failed to inject sidebar: " + (response?.error || "Unknown error"))
           }
         })
       }
       catch(error) {
         console.error("Error injecting sidebar:", error)
-        // setSidebarStatus("Error")
-        // setTimeout(() => setSidebarStatus(""), 2000)
       }
     }
   }
 
-  const toggleSidebar = async () => {
-    setSidebarStatus(!sidebarStatus)
-  }
+  // const toggleSidebar = async () => {
+  //   // Legacy function, replaced by toggleSidebarStatus
+  // }
 
   const handleOptionClick = () => {
     if (chrome.runtime.openOptionsPage) {
@@ -163,12 +196,7 @@ export default function Popup() {
 
         {/* Sidebar Button */}
         <Button 
-          onClick={() => {
-            if (!sidebarStatus)
-                injectSidebar()
-            
-            toggleSidebar()
-          }}
+          onClick={toggleSidebarStatus}
           className={`w-full h-10 font-medium border ${
             isDark 
               ? 'bg-black text-white border-neutral-800 hover:bg-neutral-900' 
