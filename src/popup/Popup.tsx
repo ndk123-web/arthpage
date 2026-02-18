@@ -132,7 +132,7 @@ export default function Popup() {
             <img src="/icons/arthpage-opt.png" alt="ArthPage Icon" />
           </div>
           <div>
-            <h1 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-black'}`}>ArthPage</h1>
+            <h1 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-black'}`}>ArthaPage</h1>
             <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>AI-powered extraction</p>
           </div>
         </div>

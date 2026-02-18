@@ -1,6 +1,6 @@
-## 🚀 ArthPage
+## 🚀 ArthaPage
 
-**ArthPage** is a modern Chrome Extension built with **Vite + React + CRXJS** designed to demonstrate the internal architecture of browser extensions and inter-component communication.
+**ArthaPage** is a modern Chrome Extension built with **Vite + React + CRXJS** designed to demonstrate the internal architecture of browser extensions and inter-component communication.
 
 ### 🏗️ Architecture & Process Isolation
 

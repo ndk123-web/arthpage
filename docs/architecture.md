@@ -1,6 +1,6 @@
 # Architecture Overview
 
-ArthPage employs a message-passing architecture to coordinate between isolated browser extension contexts.
+ArthaPage employs a message-passing architecture to coordinate between isolated browser extension contexts.
 
 ## Core Components
 

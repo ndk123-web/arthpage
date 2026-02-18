@@ -1,11 +1,11 @@
 <div align="center">
-  <img src="public/icons/arthpage-opt.png" alt="ArthPage Logo" width="100" height="100" style="border-radius: 50%;">
+  <img src="public/icons/ArthaPage-opt.png" alt="ArthaPage Logo" width="100" height="100" style="border-radius: 50%;">
 </div>
 <p align="center">
- <h1 align="center">ArthPage</h1>
+ <h1 align="center">ArthaPage</h1>
 </p>
 
-**ArthPage** is a sophisticated browser extension designed to integrate a contextual AI sidebar heavily optimized for research and reading. It allows users to interact with webpage content using various Large Language Models (LLMs) including OpenAI, Gemini, Claude, DeepSeek, and local Ollama instances.
+**ArthaPage** is a sophisticated browser extension designed to integrate a contextual AI sidebar heavily optimized for research and reading. It allows users to interact with webpage content using various Large Language Models (LLMs) including OpenAI, Gemini, Claude, DeepSeek, and local Ollama instances.
 
 ## 📑 Table of Contents
 - [Features](#features)
@@ -58,7 +58,7 @@
 
 To use cloud-based models like **OpenAI, Gemini, Claude, or DeepSeek**:
 
-1.  Open the ArthPage sidebar on any webpage.
+1.  Open the ArthaPage sidebar on any webpage.
 2.  Click the **Settings** (gear icon) in the sidebar.
 3.  Select your desired provider from the list.
 4.  Enter your valid **API Key** in the input field.
@@ -99,8 +99,8 @@ Once configured, ensure the Ollama server is running:
 ollama serve
 ```
 
-#### 5. Connect ArthPage
-1.  Open the ArthPage sidebar.
+#### 5. Connect ArthaPage
+1.  Open the ArthaPage sidebar.
 2.  Go to **Settings** and select **Ollama** as the provider.
 3.  Ensure the URL is set to `http://localhost:11434` (default).
 4.  Select your pulled model (e.g., `deepseek-r1:1.5b`) from the dropdown.

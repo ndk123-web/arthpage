@@ -1,4 +1,4 @@
-# 🚀 ArthPage Chrome Extension
+# 🚀 ArthaPage Chrome Extension
 
 ## 🎯 Project Aim
 To create a powerful, privacy-focused browser extension that helps users understand and interact with web content efficiently. The extension bridges the gap between static web pages and AI capabilities, allowing users to:

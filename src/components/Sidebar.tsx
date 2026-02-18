@@ -354,7 +354,7 @@ export default function Sidebar() {
           </div>
             
             <div className="flex flex-col">
-                <span className="text-sm leading-none">ArthPage</span>
+                <span className="text-sm leading-none">ArthaPage</span>
                 <span className="text-[10px] text-muted-foreground font-normal mt-0.5 opacity-70">
                     Drag edge to resize
                 </span>
