@@ -4,8 +4,9 @@ import { createRoot } from "react-dom/client"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
-import { Moon, Sun, Save, Wifi, WifiOff } from "lucide-react"
+import { Moon, Sun, Save, Wifi, WifiOff, Github } from "lucide-react"
 import '../App.css' // Helper for Tailwind/Shadcn variables
+import { GithubClient } from "@/shared/github/github"
 
 // Define available models as constants
 const MODEL_OPTIONS = {
@@ -32,6 +33,11 @@ function Options() {
         ollama: {url: "http://localhost:11434", model: "llama3"}
     }
   })
+
+  function runGithubIssue() {
+    const githubClient = new GithubClient();
+    githubClient.openIssueLink("Test Issue From ArthPage Web Extension", "This issue was created from the ArthPage extension settings page.");
+  }
 
   useEffect(() => {
     // Theme init
@@ -160,6 +166,26 @@ function Options() {
             <div className="p-6 md:p-8 space-y-6">
                 {activeTab === 'online' ? (
                      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="space-y-3 p-4 border rounded-lg bg-gray-50/50 dark:bg-neutral-900/30 dark:border-neutral-800">
+                             <div className="flex items-center justify-between">
+                                <div>
+                                    <label className="text-sm font-medium">Report an Issue</label>
+                                    <p className="text-xs text-muted-foreground mt-1">Found a bug or have a feature request? Let us know on GitHub.</p>
+                                </div>
+                                <Button 
+                                    onClick={runGithubIssue} 
+                                    variant="outline"
+                                    className={isDark ? "bg-neutral-900 border-neutral-800 hover:bg-neutral-800" : "bg-white hover:bg-gray-100"}
+                                >
+                                    <Github className="w-4 h-4 mr-2" />
+                                    Open GitHub Issue
+                                </Button>
+                             </div>
+                        </div>
+
+                        <div className="space-y-3 pointer-events-none opacity-50 hidden"> {/* Separator or old code handling */}
+                        </div>
+
                         <div className="space-y-3">
                             <label className="text-sm font-medium">AI Provider</label>
                             <Select value={settings.activeProvider} onValueChange={setProvider}>
