@@ -30,4 +30,12 @@ export class TimeoutError {
       }, 30000);
     });
   }
+
+  static async claudeRequestTimeout(): Promise<string> {
+    return new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error("Claude Request timed out (30s)"));
+      }, 30000);
+    });
+  }
 }

@@ -2,6 +2,7 @@
 import runGemini from "./utils/runGemini";
 import runOpenAI from "./utils/runOpenai";
 import runDeepSeek from "./utils/runDeepseek";
+import runClaude from "./utils/runClaude";
 import { TimeoutError } from "./utils/error/timeout";
 
 // import { GeminiClient } from "@/lib/llm/gemini";
@@ -207,8 +208,35 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
         .catch((error) => {
           console.error("DeepSeek request failed or timed out:", error);
           sendResponse({
-            response:
-              `Error: Server did not respond within 30 seconds or failed. ${error.message || ""}`,
+            response: `Error: Server did not respond within 30 seconds or failed. ${error.message || ""}`,
+          });
+        });
+    } else if (activeModel === "claude") {
+      Promise.race([
+        // dynamic model
+        runClaude(prompt, activeModel),
+
+        // timeout for claude
+        TimeoutError.claudeRequestTimeout(),
+      ])
+        .then((response) => {
+          if (currentChatListId && !response.startsWith("Error: ")) {
+            addMessageInStorage(
+              actualUserPrompt,
+              response as string,
+              currentChatListId,
+            );
+            console.log(
+              `Added message to storage for chat ID: ${currentChatListId}`,
+            );
+          }
+
+          sendResponse({ response });
+        })
+        .catch((error) => {
+          console.error("Claude request failed or timed out:", error);
+          sendResponse({
+            response: `Error: Server did not respond within 30 seconds or failed. ${error.message || ""}`,
           });
         });
     } else {
