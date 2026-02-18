@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/icons/ArthaPage-opt.png" alt="ArthaPage Logo" width="100" height="100" style="border-radius: 50%;">
+  <img src="public/icons/arthpage-opt.png" alt="ArthaPage Logo" width="100" height="100" style="border-radius: 50%;">
 </div>
 <p align="center">
  <h1 align="center">ArthaPage</h1>
