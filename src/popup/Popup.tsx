@@ -14,9 +14,10 @@ export default function Popup() {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
     setIsDark(savedTheme ? savedTheme === "dark" : prefersDark)
 
-
-    const savedSidebarStatus = localStorage.getItem("sidebar-status")
-    setSidebarStatus(savedSidebarStatus === "open")
+    // Sync with chrome.storage.local instead of localStorage (which is isolated per context)
+    chrome.storage.local.get("sidebarStatus", (result) => {
+      setSidebarStatus(result.sidebarStatus === "open")
+    })
   }, [])
 
   const toggleTheme = () => {
@@ -33,7 +34,7 @@ export default function Popup() {
            console.log("Sidebar removal response:", response)
            if (response && response.status === "SIDEBAR_REMOVED") {
              setSidebarStatus(false)
-             localStorage.setItem("sidebar-status", "closed")
+             chrome.storage.local.set({ sidebarStatus: 'closed' })
            }
         })
       }
@@ -93,7 +94,7 @@ export default function Popup() {
           console.log("Sidebar injection response:", response)
           if (response && response.status === "SIDEBAR_INJECTED") {
              setSidebarStatus(true)
-             localStorage.setItem("sidebar-status", "open")
+             chrome.storage.local.set({ sidebarStatus: 'open' })
           }
           else {
             // Check specifically for "Receiving end does not exist" which means content script isn't ready/reloaded

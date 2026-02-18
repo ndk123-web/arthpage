@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { cn } from "@/lib/utils";
-import { X, Send, Bot, Moon, Sun, PanelLeft, PanelRight, Settings2, History, MessageSquarePlus, MessageSquare } from "lucide-react";
+import { X, Send, Moon, Sun, PanelLeft, PanelRight, Settings2, History, MessageSquarePlus, MessageSquare } from "lucide-react";
 import { extractPageContentSafe } from "@/content/utils/extractContent";
 
 // Types
@@ -206,6 +206,9 @@ export default function Sidebar() {
   const closeSidebar = () => {
     const root = document.getElementById("my-extension-sidebar-root");
     if (root) root.remove();
+
+    // from localstorage set sidebar-status to closed -> NOW using chrome.storage.local
+    chrome.storage.local.set({ sidebarStatus: 'closed' });
   };
 
   const handleSend = async () => {
@@ -342,12 +345,16 @@ export default function Sidebar() {
       <div className={cn("flex flex-col border-b backdrop-blur supports-[backdrop-filter]:bg-background/60", isDark ? 'border-neutral-800 bg-black' : 'border-gray-200 bg-white')}>
           <div className="flex items-center justify-between p-4 pb-2">
             <div className="flex items-center gap-2 font-semibold">
-            <div className={cn("h-8 w-8 rounded-full flex items-center justify-center shadow-sm", isDark ? 'bg-white text-black' : 'bg-black text-white')}>
-                <Bot className="h-5 w-5" />
-            </div>
+           <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-gray-200 dark:border-neutral-700">
+             <img 
+               src={chrome.runtime.getURL("icons/arthpage-opt.png")} 
+               alt="ArthPage" 
+               className="w-full h-full object-cover"
+             />
+          </div>
             
             <div className="flex flex-col">
-                <span className="text-sm leading-none">ArthaPage</span>
+                <span className="text-sm leading-none">ArthPage</span>
                 <span className="text-[10px] text-muted-foreground font-normal mt-0.5 opacity-70">
                     Drag edge to resize
                 </span>
