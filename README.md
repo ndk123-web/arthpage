@@ -1,11 +1,10 @@
-# ArthPage
 
 <div align="center">
   <img src="public/icons/arthpage-opt.png" alt="ArthPage Logo" width="100" height="100" style="border-radius: 50%;">
-  <p><em>An AI-powered browser sidekick for summarizing, analyzing, and chatting with web content.</em></p>
 </div>
-
----
+<p align="center">
+ <h1 align="center">ArthPage</h1>
+</p>
 
 **ArthPage** integrates a contextual AI sidebar heavily optimized for research and reading. It allows users to interact with webpage content using various Large Language Models (LLMs) including OpenAI, Gemini, Claude, DeepSeek, and local Ollama instances.
 
@@ -79,5 +78,3 @@ First-Web-Extension/
 ## License
 
 MIT
-
-
