@@ -16,6 +16,8 @@ import { X, Send, Moon, Sun, PanelLeft, PanelRight, Settings2, History, MessageS
 import { extractPageContentSafe } from "@/content/utils/extractContent";
 import  DOMPurify  from "dompurify";
 import { marked } from "marked";
+// import hljs from "highlight.js";
+import "highlight.js/styles/github-dark.css";
 
 // Configure marked options
 marked.use({
@@ -494,7 +496,7 @@ ${contentData.content}
                         >
                             <div 
                                 className="prose dark:prose-invert prose-sm max-w-none leading-relaxed"
-                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(msg.content) as string) }}
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(msg.content.trim()) as string) }}
                             />
                             
                             {/* time like 3:02 PM */}

@@ -18,16 +18,16 @@ async function main() {
 
 async function testMarkdown() {
   const llmresponse = `
-    #AI Explained
-    
-    Ai Learn from data 
+# AI Explained
 
-    \`\`\`js
-    console.log("Hello")
-    \`\`\`
-  `;
+AI learns from data.
 
-  const html = marked(llmresponse);
+\`\`\`js
+console.log("Hello")
+\`\`\`
+`;
+
+  const html = marked.parse(llmresponse);
 
   console.log(html);
 }
