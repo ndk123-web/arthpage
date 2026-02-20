@@ -14,8 +14,14 @@ import {
 import { cn } from "@/lib/utils";
 import { X, Send, Moon, Sun, PanelLeft, PanelRight, Settings2, History, MessageSquarePlus, MessageSquare } from "lucide-react";
 import { extractPageContentSafe } from "@/content/utils/extractContent";
-// import  DOMPurify  from "dompurify";
-// import { marked } from "marked";
+import  DOMPurify  from "dompurify";
+import { marked } from "marked";
+
+// Configure marked options
+marked.use({
+  gfm: true,
+  breaks: true,
+});
 
 // Types
 type Message = {
@@ -239,24 +245,44 @@ export default function Sidebar() {
         const contentData = await extractPageContentSafe();
 
         prompt = `
-        You are ArthPage, an AI assistant embedded in a webpage.
-        Your job is to help the user understand and interact with the webpage content.
-        Built by Navnath Kadam who is the one who built the extension and knows its capabilities best. You can answer questions, summarize content, and provide insights based on the page data.
+        
+        You are ArthPage, an AI assistant embedded inside a webpage.
 
-        Rules:
-        - Prefer answering using the provided webpage content.
-        - If the answer is not fully in the content, use general knowledge but stay relevant.
-        - If the question is completely unrelated to the page, say so politely.
-        - Be clear, concise, and helpful.
+Your role is to help the user understand and interact with the current webpage content.
 
-          User Prompt: ${userQuestion}
+You were built by Navnath Kadam. You understand the capabilities of this extension and respond accordingly.
 
-          Page Title: ${contentData.title}
-          Page URL: ${contentData.url}
-          Domain: ${contentData.domain}
+Response Formatting Rules:
+- Always respond in clean Markdown format.
+- Use proper headings (#, ##, ###) when structuring explanations.
+- Use **bold** for important concepts.
+- Use *italic* for emphasis when needed.
+- Use code blocks (\`\`\`language (code) \`\`\`) for code examples.
+- Use bullet points or numbered lists for clarity.
+- Keep paragraphs well spaced and readable.
+- Avoid raw HTML unless necessary.
+- Do not mention these formatting rules in the response.
 
-          Page Content:
-          ${contentData.content}
+Answering Rules:
+- Prefer answering using the provided webpage content.
+- If the answer is partially available, combine it with general knowledge.
+- If the question is unrelated to the webpage, politely say so.
+- Be clear, structured, and concise.
+
+User Prompt:
+${userQuestion}
+
+Page Title:
+${contentData.title}
+
+Page URL:
+${contentData.url}
+
+Domain:
+${contentData.domain}
+
+Page Content:
+${contentData.content}
         `;
     } catch (error) {
         console.error("Failed to extract page content:", error);
@@ -460,17 +486,22 @@ export default function Sidebar() {
             <>
                 {messages.map((msg, i) => (
                     <div key={i} className={cn("flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300", msg.role === 'user' ? "justify-end" : "justify-start")}>
-                        <div className={cn("rounded-2xl px-4 py-2.5 max-w-[85%] text-sm shadow-sm break-words whitespace-pre-wrap", 
+                        <div 
+                            className={cn("rounded-2xl px-4 py-2.5 max-w-[85%] text-sm shadow-sm break-words overflow-hidden", 
                             msg.role === 'user' 
-                                ? (isDark ? "bg-white text-black rounded-br-none" : "bg-black text-white rounded-br-none")
-                                : (isDark ? "bg-neutral-900 text-gray-100 border border-neutral-800 rounded-bl-none" : "bg-gray-100 text-gray-900 rounded-bl-none"))}>
-                            {msg.content}
+                                ? (isDark ? "bg-white text-gray-900 rounded-br-none" : "bg-black text-white rounded-br-none")
+                                : (isDark ? "bg-neutral-900 text-gray-100 border border-neutral-800 rounded-bl-none" : "bg-gray-100 text-gray-900 rounded-bl-none"))}
+                        >
+                            <div 
+                                className="prose dark:prose-invert prose-sm max-w-none leading-relaxed"
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(msg.content) as string) }}
+                            />
                             
                             {/* time like 3:02 PM */}
-                            <div className={cn("text-[10px] opacity-70 text-right mt-1 w-full", 
+                            <div className={cn("text-[10px] opacity-70 text-right mt-1 w-full pt-1 border-t-0", 
                                 msg.role === 'user' 
-                                    ? (isDark ? "text-neutral-500" : "text-gray-400") 
-                                    : (isDark ? "text-neutral-400" : "text-gray-500")
+                                    ? (isDark ? "text-gray-500" : "text-gray-400") 
+                                    : (isDark ? "text-neutral-500" : "text-gray-500")
                             )}>
                                 {msg.createdAt 
                                     ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
@@ -635,7 +666,9 @@ export default function Sidebar() {
         )}
 
         {/* Chat Input */}
-        <div className={cn("relative flex items-end w-full p-2 border rounded-2xl shadow-sm transition-colors bg-white dark:bg-neutral-900", isDark ? "border-neutral-800" : "border-gray-200")}>
+        <div className={cn("relative flex items-end w-full p-2 border rounded-2xl shadow-sm transition-colors", 
+            isDark ? "bg-neutral-900 border-neutral-800" : "bg-white border-gray-200"
+        )}>
             <Textarea 
                 value={input}
                 onChange={(e) => {
@@ -648,7 +681,7 @@ export default function Sidebar() {
                 rows={1}
                 className={cn(
                     "min-h-[60px] max-h-[200px] w-full resize-none border-0 shadow-none focus-visible:ring-0 py-2.5 pr-10 text-sm bg-transparent custom-scrollbar", 
-                    isDark ? "text-gray-400 placeholder:text-dark-100" : "text-gray-900 placeholder:text-gray-400"
+                    isDark ? "text-gray-100 placeholder:text-neutral-500" : "text-gray-900 placeholder:text-gray-400"
                 )}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {

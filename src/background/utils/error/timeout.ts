@@ -3,7 +3,7 @@ export class TimeoutError {
     return new Promise((_, reject) => {
       setTimeout(() => {
         reject(new Error("Ollama Request timed out (30s)"));
-      }, 30000);
+      }, 100000); // 1 minute
     });
   }
 
