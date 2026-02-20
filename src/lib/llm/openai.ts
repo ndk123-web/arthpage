@@ -1,4 +1,5 @@
 import type { LLMClient } from "./wrapper";
+import { SanitizeLLMResponse } from "@/background/utils/sanitizeAndMarkdown/sanitizeResponse";
 
 export class OpenAiClient implements LLMClient {
   constructor(
@@ -67,7 +68,10 @@ export class OpenAiClient implements LLMClient {
       );
 
       console.log("OpenAI response:", response);
-      return response;
+
+      const sanitizedResponse = SanitizeLLMResponse.main(response);
+
+      return sanitizedResponse;
     } catch (error: any) {
       console.error("Error in OpenAiClient chat method:", error);
       return `Error: ${error.message || "Failed to get response from OpenAI API"}`;

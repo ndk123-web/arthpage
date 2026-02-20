@@ -1,6 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
+import { marked } from "marked";
+
 // The client gets the API key from the environment variable `GEMINI_API_KEY`.
-const ai = new GoogleGenAI({apiKey: "AIzaSyAOHZuf5sAJbB6FKnppoNcgPis6pv2exSk"});
+const ai = new GoogleGenAI({
+  apiKey: "AIzaSyAOHZuf5sAJbB6FKnppoNcgPis6pv2exSk",
+});
 
 async function main() {
   const response = await ai.models.generateContent({
@@ -10,4 +14,21 @@ async function main() {
   console.log(response.text);
 }
 
-main();
+// main();
+
+async function testMarkdown() {
+  const llmresponse = `
+    # AI Explained
+    Ai Learn from data 
+
+    \`\`\`js
+    console.log("Hello")
+    \`\`\`
+  `;
+
+  const html = marked(llmresponse);
+
+  console.log(html);
+}
+
+testMarkdown();

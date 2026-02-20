@@ -14,6 +14,8 @@ import {
 import { cn } from "@/lib/utils";
 import { X, Send, Moon, Sun, PanelLeft, PanelRight, Settings2, History, MessageSquarePlus, MessageSquare } from "lucide-react";
 import { extractPageContentSafe } from "@/content/utils/extractContent";
+// import  DOMPurify  from "dompurify";
+// import { marked } from "marked";
 
 // Types
 type Message = {
@@ -291,7 +293,15 @@ export default function Sidebar() {
       actualUserPrompt: userQuestion, // Send the original user question for better context in background processing and storage
       currentChatListId: activeChatId
     }, ({response}) => {
+
       console.log("Received response from background script:", response);
+
+    // //   sanitize the llm response
+    //   const sanitizedResponse: any = DOMPurify.sanitize(response)
+    //   const markDownResponse: any= marked(sanitizedResponse);
+
+    //   console.log("Markdown Response",markDownResponse)
+
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: response || "No response received.", createdAt: Date.now() }
@@ -638,7 +648,7 @@ export default function Sidebar() {
                 rows={1}
                 className={cn(
                     "min-h-[60px] max-h-[200px] w-full resize-none border-0 shadow-none focus-visible:ring-0 py-2.5 pr-10 text-sm bg-transparent custom-scrollbar", 
-                    isDark ? "text-gray-100 placeholder:text-neutral-500" : "text-gray-900 placeholder:text-gray-400"
+                    isDark ? "text-gray-400 placeholder:text-dark-100" : "text-gray-900 placeholder:text-gray-400"
                 )}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {

@@ -1,4 +1,5 @@
 import type { LLMClient } from "./wrapper";
+import { SanitizeLLMResponse } from "@/background/utils/sanitizeAndMarkdown/sanitizeResponse";
 
 export class ClaudeClient implements LLMClient {
   private apiKey: string;
@@ -56,7 +57,14 @@ export class ClaudeClient implements LLMClient {
     try {
       const response = await this.main();
       console.log("Claude response:", response);
-      return response;
+
+      const sanitizedAndMarkdownResponse = SanitizeLLMResponse.main(response);
+      console.log(
+        "Sanitized and Markdown response:",
+        sanitizedAndMarkdownResponse,
+      );
+
+      return sanitizedAndMarkdownResponse;
     } catch (error: any) {
       console.error("Error in ClaudeClient chat:", error);
       return `Error: ${error.message || "Failed to get response"}`;
