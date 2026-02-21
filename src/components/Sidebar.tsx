@@ -16,10 +16,11 @@ import { X, Send, Moon, Sun, PanelLeft, PanelRight, Settings2, History, MessageS
 import { extractPageContentSafe } from "@/content/utils/extractContent";
 import  DOMPurify  from "dompurify";
 import { marked } from "marked";
-// import hljs from "highlight.js";
+import hljs from "highlight.js";
 import "highlight.js/styles/github-dark.css";
 
 // Configure marked options
+// marked.use calls removed as they might conflict if set repeatedly or if defaults are fine. Actually keep them if they are good.
 marked.use({
   gfm: true,
   breaks: true,
@@ -131,6 +132,17 @@ export default function Sidebar() {
         })
     }
   }, [currentChatListId])
+
+  
+  // Effect to highlight code blocks whenever messages change or view switches
+  useEffect(() => {
+    const sidebarRoot = document.getElementById("my-extension-sidebar-root");
+    if (sidebarRoot) {
+        sidebarRoot.querySelectorAll('pre code').forEach((block) => {
+             hljs.highlightElement(block as HTMLElement);
+        });
+    }
+  }, [messages, view, loading, chatHistory,width,isResizing,isDark,side]);
 
   /**
    * This function is responsible for fetching the chat history from Chrome's local storage and updating the component's state with that history. It retrieves the "arthpage_chats" item from local storage, which is expected to be an array of chat history items. If such data exists, it sorts the chats by their creation time in descending order (newest first) and then updates the `chatHistory` state with this sorted list. This allows the component to display the user's previous conversations in a structured manner, enabling features like viewing past chats or continuing previous conversations seamlessly.
