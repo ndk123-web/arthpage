@@ -138,8 +138,12 @@ export default function Sidebar() {
   useEffect(() => {
     const sidebarRoot = document.getElementById("my-extension-sidebar-root");
     if (sidebarRoot) {
+
+        // it fetches all code blocks within sidebar and applies syntax highlighting
         sidebarRoot.querySelectorAll('pre code').forEach((block) => {
-             hljs.highlightElement(block as HTMLElement);
+            
+            // why as HTMLElement because for typescript we are saying that trust me bro this block is an HTMLElement
+            hljs.highlightElement(block as HTMLElement);
         });
     }
   }, [messages, view, loading, chatHistory,width,isResizing,isDark,side]);
