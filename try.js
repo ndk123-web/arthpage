@@ -3,7 +3,7 @@ import { marked } from "marked";
 
 // The client gets the API key from the environment variable `GEMINI_API_KEY`.
 const ai = new GoogleGenAI({
-  apiKey: "AIzaSyAOHZuf5sAJbB6FKnppoNcgPis6pv2exSk",
+  apiKey: "",
 });
 
 async function main() {
