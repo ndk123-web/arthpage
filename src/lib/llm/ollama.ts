@@ -1,5 +1,6 @@
 import type { LLMClient } from "./wrapper";
 import { SYSTEM_PROMPT } from "../utils";
+import { SanitizeLLMResponse } from "@/background/utils/sanitizeAndMarkdown/sanitizeResponse";
 
 type OllamaResponse = {
   response: string;
@@ -85,14 +86,22 @@ export class OllamaClient implements LLMClient {
     // fetch http://localhost:11434
 
     let response: string = "";
+    let sanitizedResponse: string = "";
+
     if (this.way === "normal") {
       response = await this.normalWay(prompt);
+
+      sanitizedResponse = await SanitizeLLMResponse.main(response);
+
       console.log(`Final response from Ollama: ${response}`);
     } else if (this.way === "smart") {
       response = await this.smartWay(prompt);
+
+      sanitizedResponse = await SanitizeLLMResponse.main(response);
+
       console.log(`Final response from Ollama: ${response}`);
     }
 
-    return response;
+    return sanitizedResponse;
   }
 }

@@ -1,4 +1,6 @@
 import { STORAGE_KEY } from "./chatStore";
+// import { marked } from "marked";
+// import DOMPurify from "dompurify";
 
 export function addMessageInStorage(
   prompt: string,
@@ -15,6 +17,13 @@ export function addMessageInStorage(
     const updatedChats: any[] = chats.map((chat: any) => {
       if (chat.id === chatListId) {
         chatFound = true;
+
+        // Sanitized llm response
+        // const sanitizedLLMResponse = DOMPurify.sanitize(response);
+
+        // // convert string to html tags strings
+        // const markdownResponse = marked(sanitizedLLMResponse);
+
         const newMessages = [
           ...chat.messages,
           {

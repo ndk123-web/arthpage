@@ -14,6 +14,17 @@ import {
 import { cn } from "@/lib/utils";
 import { X, Send, Moon, Sun, PanelLeft, PanelRight, Settings2, History, MessageSquarePlus, MessageSquare } from "lucide-react";
 import { extractPageContentSafe } from "@/content/utils/extractContent";
+import  DOMPurify  from "dompurify";
+import { marked } from "marked";
+import hljs from "highlight.js";
+import "highlight.js/styles/github-dark.css";
+
+// Configure marked options
+// marked.use calls removed as they might conflict if set repeatedly or if defaults are fine. Actually keep them if they are good.
+marked.use({
+  gfm: true,
+  breaks: true,
+});
 
 // Types
 type Message = {
@@ -121,6 +132,21 @@ export default function Sidebar() {
         })
     }
   }, [currentChatListId])
+
+  
+  // Effect to highlight code blocks whenever messages change or view switches
+  useEffect(() => {
+    const sidebarRoot = document.getElementById("my-extension-sidebar-root");
+    if (sidebarRoot) {
+
+        // it fetches all code blocks within sidebar and applies syntax highlighting
+        sidebarRoot.querySelectorAll('pre code').forEach((block) => {
+            
+            // why as HTMLElement because for typescript we are saying that trust me bro this block is an HTMLElement
+            hljs.highlightElement(block as HTMLElement);
+        });
+    }
+  }, [messages, view, loading, chatHistory,width,isResizing,isDark,side]);
 
   /**
    * This function is responsible for fetching the chat history from Chrome's local storage and updating the component's state with that history. It retrieves the "arthpage_chats" item from local storage, which is expected to be an array of chat history items. If such data exists, it sorts the chats by their creation time in descending order (newest first) and then updates the `chatHistory` state with this sorted list. This allows the component to display the user's previous conversations in a structured manner, enabling features like viewing past chats or continuing previous conversations seamlessly.
@@ -237,24 +263,44 @@ export default function Sidebar() {
         const contentData = await extractPageContentSafe();
 
         prompt = `
-        You are ArthPage, an AI assistant embedded in a webpage.
-        Your job is to help the user understand and interact with the webpage content.
-        Built by Navnath Kadam who is the one who built the extension and knows its capabilities best. You can answer questions, summarize content, and provide insights based on the page data.
+        
+        You are ArthPage, an AI assistant embedded inside a webpage.
 
-        Rules:
-        - Prefer answering using the provided webpage content.
-        - If the answer is not fully in the content, use general knowledge but stay relevant.
-        - If the question is completely unrelated to the page, say so politely.
-        - Be clear, concise, and helpful.
+Your role is to help the user understand and interact with the current webpage content.
 
-          User Prompt: ${userQuestion}
+You were built by Navnath Kadam. You understand the capabilities of this extension and respond accordingly.
 
-          Page Title: ${contentData.title}
-          Page URL: ${contentData.url}
-          Domain: ${contentData.domain}
+Response Formatting Rules:
+- Always respond in clean Markdown format.
+- Use proper headings (#, ##, ###) when structuring explanations.
+- Use **bold** for important concepts.
+- Use *italic* for emphasis when needed.
+- Use code blocks (\`\`\`language (code) \`\`\`) for code examples.
+- Use bullet points or numbered lists for clarity.
+- Keep paragraphs well spaced and readable.
+- Avoid raw HTML unless necessary.
+- Do not mention these formatting rules in the response.
 
-          Page Content:
-          ${contentData.content}
+Answering Rules:
+- Prefer answering using the provided webpage content.
+- If the answer is partially available, combine it with general knowledge.
+- If the question is unrelated to the webpage, politely say so.
+- Be clear, structured, and concise.
+
+User Prompt:
+${userQuestion}
+
+Page Title:
+${contentData.title}
+
+Page URL:
+${contentData.url}
+
+Domain:
+${contentData.domain}
+
+Page Content:
+${contentData.content}
         `;
     } catch (error) {
         console.error("Failed to extract page content:", error);
@@ -291,7 +337,15 @@ export default function Sidebar() {
       actualUserPrompt: userQuestion, // Send the original user question for better context in background processing and storage
       currentChatListId: activeChatId
     }, ({response}) => {
+
       console.log("Received response from background script:", response);
+
+    // //   sanitize the llm response
+    //   const sanitizedResponse: any = DOMPurify.sanitize(response)
+    //   const markDownResponse: any= marked(sanitizedResponse);
+
+    //   console.log("Markdown Response",markDownResponse)
+
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: response || "No response received.", createdAt: Date.now() }
@@ -450,17 +504,22 @@ export default function Sidebar() {
             <>
                 {messages.map((msg, i) => (
                     <div key={i} className={cn("flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300", msg.role === 'user' ? "justify-end" : "justify-start")}>
-                        <div className={cn("rounded-2xl px-4 py-2.5 max-w-[85%] text-sm shadow-sm break-words whitespace-pre-wrap", 
+                        <div 
+                            className={cn("rounded-2xl px-4 py-2.5 max-w-[85%] text-sm shadow-sm break-words overflow-hidden", 
                             msg.role === 'user' 
-                                ? (isDark ? "bg-white text-black rounded-br-none" : "bg-black text-white rounded-br-none")
-                                : (isDark ? "bg-neutral-900 text-gray-100 border border-neutral-800 rounded-bl-none" : "bg-gray-100 text-gray-900 rounded-bl-none"))}>
-                            {msg.content}
+                                ? (isDark ? "bg-white text-gray-900 rounded-br-none" : "bg-black text-white rounded-br-none")
+                                : (isDark ? "bg-neutral-900 text-gray-100 border border-neutral-800 rounded-bl-none" : "bg-gray-100 text-gray-900 rounded-bl-none"))}
+                        >
+                            <div 
+                                className="prose dark:prose-invert prose-sm max-w-none leading-relaxed"
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(msg.content.trim()) as string) }}
+                            />
                             
                             {/* time like 3:02 PM */}
-                            <div className={cn("text-[10px] opacity-70 text-right mt-1 w-full", 
+                            <div className={cn("text-[10px] opacity-70 text-right mt-1 w-full pt-1 border-t-0", 
                                 msg.role === 'user' 
-                                    ? (isDark ? "text-neutral-500" : "text-gray-400") 
-                                    : (isDark ? "text-neutral-400" : "text-gray-500")
+                                    ? (isDark ? "text-gray-500" : "text-gray-400") 
+                                    : (isDark ? "text-neutral-500" : "text-gray-500")
                             )}>
                                 {msg.createdAt 
                                     ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
@@ -625,7 +684,9 @@ export default function Sidebar() {
         )}
 
         {/* Chat Input */}
-        <div className={cn("relative flex items-end w-full p-2 border rounded-2xl shadow-sm transition-colors bg-white dark:bg-neutral-900", isDark ? "border-neutral-800" : "border-gray-200")}>
+        <div className={cn("relative flex items-end w-full p-2 border rounded-2xl shadow-sm transition-colors", 
+            isDark ? "bg-neutral-900 border-neutral-800" : "bg-white border-gray-200"
+        )}>
             <Textarea 
                 value={input}
                 onChange={(e) => {

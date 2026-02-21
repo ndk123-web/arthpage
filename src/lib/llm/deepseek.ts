@@ -1,4 +1,5 @@
 import type { LLMClient } from "./wrapper";
+import { SanitizeLLMResponse } from "@/background/utils/sanitizeAndMarkdown/sanitizeResponse";
 
 export class DeepSeekClient implements LLMClient {
   private apiKey: string;
@@ -54,9 +55,16 @@ export class DeepSeekClient implements LLMClient {
   async chat(prompt: string): Promise<string> {
     try {
       const response = await this.main(prompt);
-      
+
       console.log("DeepSeek response:", response);
-      return response;
+
+      const sanitizedAndMarkdownResponse = SanitizeLLMResponse.main(response);
+      console.log(
+        "Sanitized and Markdown response:",
+        sanitizedAndMarkdownResponse,
+      );
+
+      return sanitizedAndMarkdownResponse;
     } catch (error: any) {
       console.error("Error in DeepSeekClient chat:", error);
       return `Error: ${error.message || "Failed to get response"}`;

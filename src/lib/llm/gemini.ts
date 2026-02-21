@@ -1,4 +1,5 @@
 import type { LLMClient } from "./wrapper";
+import { SanitizeLLMResponse } from "@/background/utils/sanitizeAndMarkdown/sanitizeResponse";
 
 export class GeminiClient implements LLMClient {
   constructor(
@@ -73,7 +74,11 @@ export class GeminiClient implements LLMClient {
       console.log(`Calling Gemini with Model: ${this.model}`);
       const response = await this.main(prompt);
       console.log("Gemini response:", response);
-      return response;
+
+      const sanitizedAndMarkdownResponse = SanitizeLLMResponse.main(response);
+      console.log("Sanitized Response: ", sanitizedAndMarkdownResponse);
+
+      return sanitizedAndMarkdownResponse;
     } catch (error: any) {
       console.error("Error in GeminiClient chat:", error);
       return `Error: ${error.message || "Failed to get response"}`;
