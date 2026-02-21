@@ -7,6 +7,20 @@
 
 **ArthaPage** is a sophisticated browser extension designed to integrate a contextual AI sidebar heavily optimized for research and reading. It allows users to interact with webpage content using various Large Language Models (LLMs) including OpenAI, Gemini, Claude, DeepSeek, and local Ollama instances.
 
+## 📸 Screenshots
+
+### 1. Sidebar Chat Response Example
+<img src="public/images/sidebar-response.png" alt="Sidebar Chat Response" width="700"/>
+
+### 2. Online Settings (OpenAI)
+<img src="public/images/online-setting.png" alt="Online Settings Screenshot" width="700"/>
+
+### 3. Offline Settings (Ollama)
+<img src="public/images/offline-setting.png" alt="Offline Settings Screenshot" width="700"/>
+
+### 4. Chat History View
+<img src="public/images/history.png" alt="Chat History Screenshot" width="350"/>
+
 ## 📑 Table of Contents
 - [Features](#features)
 - [Installation](#installation)
@@ -141,3 +155,5 @@ First-Web-Extension/
 ## License
 
 MIT
+
+
