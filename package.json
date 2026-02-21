@@ -12,7 +12,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@google/genai": "^1.40.0",
     "@tailwindcss/vite": "^4.1.18",
     "@types/highlight.js": "^9.12.4",
     "class-variance-authority": "^0.7.1",
