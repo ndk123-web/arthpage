@@ -7,22 +7,11 @@
 
 **ArthaPage** is a sophisticated browser extension designed to integrate a contextual AI sidebar heavily optimized for research and reading. It allows users to interact with webpage content using various Large Language Models (LLMs) including OpenAI, Gemini, Claude, DeepSeek, and local Ollama instances.
 
-## 📸 Screenshots
 
-### 1. Sidebar Chat Response Example
-<img src="public/images/sidebar-response.png" alt="Sidebar Chat Response" width="700"/>
-
-### 2. Online Settings (OpenAI)
-<img src="public/images/online-setting.png" alt="Online Settings Screenshot" width="700"/>
-
-### 3. Offline Settings (Ollama)
-<img src="public/images/offline-setting.png" alt="Offline Settings Screenshot" width="700"/>
-
-### 4. Chat History View
-<img src="public/images/history.png" alt="Chat History Screenshot" width="350"/>
 
 ## 📑 Table of Contents
 - [Features](#features)
+- [Screenshots](#screenshots)
 - [Installation](#installation)
 - [Setup Guide](#setup-guide)
   - [Online Models (Cloud)](#online-models-cloud)
@@ -39,6 +28,20 @@
 - **Isolated UI**: Built with Shadow DOM to ensure styles do not bleed into or from the host webpage.
 - **Persistent Settings**: Syncs preferences and API configurations across browser sessions.
 - **Privacy-First**: API keys are stored in local storage and never transmitted to intermediate servers.
+
+## Screenshots
+
+### 1. Sidebar Chat Response Example
+<img src="public/images/sidebar-response.png" alt="Sidebar Chat Response" width="700"/>
+
+### 2. Online Settings (OpenAI)
+<img src="public/images/online-setting.png" alt="Online Settings Screenshot" width="700"/>
+
+### 3. Offline Settings (Ollama)
+<img src="public/images/offline-setting.png" alt="Offline Settings Screenshot" width="700"/>
+
+### 4. Chat History View
+<img src="public/images/history.png" alt="Chat History Screenshot" width="350"/>
 
 ## Installation
 
