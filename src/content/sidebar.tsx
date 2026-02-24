@@ -1,8 +1,7 @@
 import { createRoot } from "react-dom/client";
 import Sidebar from "../components/Sidebar";
 
-// ?inline we are saying to vite that we want to import the CSS file as a string instead of a URL, so we can inject it into the shadow DOM
-import styles from "../App.css?inline";
+import "../App.css";
 
 export function mountSidebar() {
   // Check if sidebar is already mounted
@@ -34,14 +33,6 @@ export function mountSidebar() {
 
   document.body.appendChild(container);
 
-  // isolate the sidebar from page styles by using Shadow DOM
-  const shadowRoot: ShadowRoot = container.attachShadow({ mode: "open" });
-
-  // Inject styles into shadow DOM
-  const styleSheet: HTMLStyleElement = document.createElement("style");
-  styleSheet.textContent = styles;
-  shadowRoot.appendChild(styleSheet);
-  
   // Create a root element ensuring it takes full height and applies base styles
   const rootElement: HTMLDivElement = document.createElement("div");
   rootElement.style.height = "100%";
@@ -50,7 +41,7 @@ export function mountSidebar() {
   // But usually typically we want the extension to manage its own theme or respect system preference.
   // For now, let's leave theme management to the Sidebar component or user preference storage.
    
-  shadowRoot.appendChild(rootElement);
+  container.appendChild(rootElement);
 
   // Mount React app
   const root = createRoot(rootElement);
